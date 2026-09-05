@@ -22,7 +22,9 @@ celular pelo botão "Instalar".
 ## O que faz
 
 - **Fichas → Treinos → Execução.** Cronômetro de sessão, marcação de séries
-  (carga/reps), descanso com som, vibração e +30s.
+  (carga/reps), descanso com som, vibração e +30s. Estourou o descanso? A barra
+  conta o atraso para cima e pulsa em vermelho, cada vez mais rápido, até você
+  voltar para a série.
 - **Progressão.** A carga sugerida vem da sua última sessão daquele exercício,
   série a série. Fechou todas as séries no topo da faixa de reps? O alvo sobe
   um incremento de anilha automaticamente.
