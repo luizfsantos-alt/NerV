@@ -4,7 +4,7 @@
 // uma academia no subsolo, sem sinal — então nada aqui pode depender da rede.
 // A rede só é consultada para descobrir versões novas, em segundo plano.
 
-const VERSION = 'nerv2-v2.0.2';
+const VERSION = 'nerv2-v2.0.3';
 const CACHE = VERSION;
 
 // Tudo o que o app precisa para abrir do zero, offline.
@@ -55,8 +55,10 @@ self.addEventListener('install', event => {
         console.warn('[sw] não consegui pré-cachear', url, e);
       }
     }));
-    // Não chamamos skipWaiting: trocar o SW no meio de um treino recarregaria
-    // a tela. A versão nova assume no próximo abrir do app.
+    // Não chamamos skipWaiting aqui: trocar o SW sozinho recarregaria a tela
+    // no meio de um treino. Quem decide é o app, via mensagem 'skipWaiting'
+    // (toast "toque para atualizar" em app.js) — ou, sem toque nenhum, no
+    // próximo abrir do zero, quando não sobra nenhum client do SW antigo.
   })());
 });
 

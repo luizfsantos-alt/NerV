@@ -50,13 +50,22 @@ if ('serviceWorker' in navigator) {
     try {
       const reg = await navigator.serviceWorker.register('./sw.js', { scope: './' });
 
-      // Uma versão nova ficou pronta enquanto o app estava aberto.
+      // Uma versão nova ficou pronta enquanto o app estava aberto. Em vez de
+      // exigir fechar tudo, o toque no aviso já aplica a troca na hora.
+      let reloading = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (reloading) return;
+        reloading = true;
+        window.location.reload();
+      });
       reg.addEventListener('updatefound', () => {
         const sw = reg.installing;
         if (!sw) return;
         sw.addEventListener('statechange', () => {
           if (sw.state === 'installed' && navigator.serviceWorker.controller) {
-            toast('Nova versão disponível — feche e reabra o app.', 'ok');
+            toast('Nova versão disponível — toque para atualizar.', 'ok', () => {
+              reg.waiting?.postMessage('skipWaiting');
+            });
           }
         });
       });
