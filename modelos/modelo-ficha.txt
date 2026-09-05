@@ -1,0 +1,25 @@
+Ficha: Hipertrofia ABCD
+Treino A: Peito/Tríceps
+Supino reto com barra 4x8-10 0kg 120s
+Supino inclinado com halteres 4x10-12 0kg 90s
+Crucifixo na máquina (voador) 3x12-15 0kg 60s
+Tríceps testa com barra W 3x10-12 0kg 60s
+Tríceps corda na polia 3x12-15 0kg 60s
+Treino B: Costas/Bíceps
+Puxada frente na barra | 4 | 8-10 | 0 | 120
+Remada curvada com barra | 4 | 8-10 | 0 | 120
+Remada baixa com triângulo | 3 | 10-12 | 0 | 90
+Rosca direta com barra W | 3 | 10-12 | 0 | 60
+Rosca martelo com halteres | 3 | 12-15 | 0 | 60
+Treino C: Pernas/Panturrilha
+Agachamento livre 4x8-10 0kg 150s
+Leg press 45 graus 4x10-12 0kg 120s
+Cadeira extensora 3x12-15 0kg 60s
+Mesa flexora 4x10-12 0kg 90s
+Panturrilha em pé 4x15-20 0kg 45s
+Treino D: Ombros/Abdômen
+Desenvolvimento com halteres 4x8-10 0kg 90s
+Elevação lateral 4x12-15 0kg 60s
+Crucifixo inverso (voador inv.) 3x12-15 0kg 60s
+Encolhimento com halteres 3x12-15 0kg 60s
+Abdominal infra na paralela 3x15-20 0kg 45s

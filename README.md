@@ -212,6 +212,9 @@ abrindo.
 
 Três caminhos, todos em `Nova Ficha` / `Importar Texto`.
 
+Modelos prontos (planilha, CSV e texto) estão em [`modelos/`](modelos/) —
+baixe, preencha e importe.
+
 ### Texto colado
 
 Uma linha por exercício. O parser aceita formato livre ou com separadores:
