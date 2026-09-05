@@ -1,6 +1,6 @@
 // Entrada do app: registra rotas, liga os efeitos e cuida do ciclo do PWA.
 
-import { seedIfEmpty } from './state.js';
+import { seedIfEmpty, removerFichaExemplo } from './state.js';
 import { setupFX, setupAmbient } from './fx.js';
 import { setupAudioPriming, toast } from './ui.js';
 import { route, startRouter, go, render } from './router.js';
@@ -15,7 +15,7 @@ import { setBeforeLeave } from './router.js';
 
 // Anda junto com o VERSION do sw.js. A tela de Ajustes mostra os dois lado a
 // lado justamente para denunciar quando o service worker fica para trás.
-export const VERSION = '2.1.0';
+export const VERSION = '2.2.0';
 window.__NERV_VERSION__ = VERSION;
 
 // O resgate de emergência do index.html recarrega com ?nerv-reset=... para
@@ -32,6 +32,9 @@ route('historico', (p, el) => { setBeforeLeave(null); screenHistorico(p, el); })
 route('stats', (p, el) => { setBeforeLeave(null); screenStats(p, el); });
 route('ajustes', (p, el) => { setBeforeLeave(null); screenAjustes(p, el); });
 
+// A ficha de exemplo das versões antigas sai antes; se o aparelho ficar sem
+// nenhuma ficha, a ABCD entra no lugar.
+removerFichaExemplo();
 seedIfEmpty();
 setupFX();
 setupAmbient();

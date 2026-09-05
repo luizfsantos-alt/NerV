@@ -5,10 +5,12 @@
 // versão boa fica num backup separado que serve de rede de segurança.
 
 import { uid, num } from './util.js';
+import { fichaABCD } from './modelos.js';
 
 const STORAGE_KEY = 'nerv2_data_v1';
 const BACKUP_KEY = 'nerv2_data_backup';
 const FX_KEY = 'nerv2_fx';
+const SEED_LIMPO_KEY = 'nerv2_seed_exemplo_removido';
 const SCHEMA = 2;
 
 function emptyState() {
@@ -176,33 +178,68 @@ export function setFX(on) {
   try { localStorage.setItem(FX_KEY, String(!!on)); } catch (e) {}
 }
 
-/** Ficha de exemplo, só para a primeira abertura do app. */
+/**
+ * Remove a ficha de exemplo que as versões antigas semeavam na primeira
+ * abertura ("Hipertrofia Full Body").
+ *
+ * A checagem é deliberadamente rígida: só sai a ficha que continua idêntica,
+ * exercício por exercício, ao que o app plantou — e apenas se nenhuma sessão
+ * do histórico tiver sido registrada nela. Bastou o usuário trocar um nome, uma
+ * carga ou treinar uma vez e ela passa a ser dado de verdade, que fica. Roda
+ * uma única vez por aparelho.
+ */
+const EXEMPLO_ANTIGO = {
+  nome: 'Hipertrofia Full Body',
+  treinos: [
+    ['A — Peito/Costas/Ombro', [
+      ['Supino reto', 4, '8-12', 20, 90],
+      ['Remada curvada', 4, '10-12', 30, 90],
+      ['Desenvolvimento', 3, '10-12', 12, 60],
+    ]],
+    ['B — Pernas/Bíceps/Tríceps', [
+      ['Agachamento', 4, '10-12', 40, 120],
+      ['Rosca direta', 3, '12-15', 10, 60],
+      ['Tríceps corda', 3, '12-15', 15, 60],
+    ]],
+  ],
+};
+
+function ehExemploIntocado(f) {
+  if (!f || f.nome !== EXEMPLO_ANTIGO.nome) return false;
+  if ((f.treinos || []).length !== EXEMPLO_ANTIGO.treinos.length) return false;
+  return EXEMPLO_ANTIGO.treinos.every(([nomeT, exs], i) => {
+    const t = f.treinos[i];
+    if (!t || t.nome !== nomeT || (t.exercicios || []).length !== exs.length) return false;
+    return exs.every(([nome, series, reps, carga, intervalo], j) => {
+      const e = t.exercicios[j];
+      return e && e.nome === nome && e.series === series && e.reps === reps
+        && num(e.carga) === carga && e.intervalo === intervalo;
+    });
+  });
+}
+
+export function removerFichaExemplo() {
+  try { if (localStorage.getItem(SEED_LIMPO_KEY)) return false; } catch (e) {}
+
+  const usadas = new Set(state.workoutHistory.map(h => h.ficha));
+  const alvo = state.fichas.filter(f => ehExemploIntocado(f) && !usadas.has(f.nome));
+  if (alvo.length) {
+    const ids = new Set(alvo.map(f => f.id));
+    state.fichas = state.fichas.filter(f => !ids.has(f.id));
+    saveState();
+  }
+  try { localStorage.setItem(SEED_LIMPO_KEY, '1'); } catch (e) {}
+  return alvo.length > 0;
+}
+
+/**
+ * Primeira abertura do app: entra a ficha ABCD de verdade, pronta para treinar.
+ * Antes vinha um exemplo genérico de três exercícios que só servia para ser
+ * apagado. Só roda com o aparelho ainda vazio — nunca mexe em dados existentes.
+ */
 export function seedIfEmpty() {
   if (state.fichas.length || state.workoutHistory.length) return false;
-  state.fichas = [{
-    id: uid('f'),
-    nome: 'Hipertrofia Full Body',
-    treinos: [
-      {
-        id: uid('t'),
-        nome: 'A — Peito/Costas/Ombro',
-        exercicios: [
-          { nome: 'Supino reto', series: 4, reps: '8-12', carga: 20, intervalo: 90 },
-          { nome: 'Remada curvada', series: 4, reps: '10-12', carga: 30, intervalo: 90 },
-          { nome: 'Desenvolvimento', series: 3, reps: '10-12', carga: 12, intervalo: 60 },
-        ],
-      },
-      {
-        id: uid('t'),
-        nome: 'B — Pernas/Bíceps/Tríceps',
-        exercicios: [
-          { nome: 'Agachamento', series: 4, reps: '10-12', carga: 40, intervalo: 120 },
-          { nome: 'Rosca direta', series: 3, reps: '12-15', carga: 10, intervalo: 60 },
-          { nome: 'Tríceps corda', series: 3, reps: '12-15', carga: 15, intervalo: 60 },
-        ],
-      },
-    ],
-  }];
+  state.fichas = [fichaABCD()];
   saveState();
   return true;
 }
