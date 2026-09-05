@@ -58,6 +58,13 @@ funciona no modo avião.
 **Fichas → Treinos → Execução.** Uma ficha agrupa treinos (A, B, C); cada
 treino tem seus exercícios com séries, faixa de reps, carga e intervalo.
 
+**Ficha ABCD pronta.** Na primeira abertura o app já vem com a divisão ABCD
+completa — A peito/tríceps, B costas/bíceps, C pernas/panturrilha, D
+ombros/abdômen, 25 exercícios com séries, reps e descanso definidos. A carga
+vai zerada de propósito: é o que você registra treinando, e a partir da segunda
+sessão o app sugere sozinho. Quem já usa o app pode criá-la de novo em
+**Nova Ficha → Começar com → Modelo ABCD**.
+
 **Execução.** Cronômetro da sessão, uma linha por série com carga e reps, e um
 checkbox para fechar a série. Marcar a série já dispara o descanso — é o gesto
 que a pessoa faria de qualquer jeito.
@@ -150,8 +157,8 @@ O card "Atualização" em Ajustes mostra **a versão do app e a do cache lado a
 lado**:
 
 ```
-app 2.1.0
-cache nerv2-v2.1.0
+app 2.2.0
+cache nerv2-v2.2.0
 ```
 
 Se os dois números divergirem, aparece um aviso em vermelho — é o sintoma exato
@@ -255,6 +262,7 @@ js/
   fx.js                 canvas ambiente, som, vibração, singularity
   ui.js                 modais, toasts, ícones (substituem alert/confirm/prompt)
   importers.js          parsers de texto, CSV e planilha
+  modelos.js            ficha ABCD pronta (semente e modelo do "Nova Ficha")
   xlsx-lite.js          leitor .xlsx próprio (~180 linhas, sem dependências)
   util.js               formatação, ids, 1RM, arredondamento para anilha
   screens/
@@ -326,8 +334,8 @@ Esquecer estes passos é o que já causou o app preso em versão antiga. Antes d
 publicar uma mudança:
 
 1. **Bumpe as duas versões**, sempre juntas:
-   - `VERSION` em `js/app.js` (ex.: `'2.1.0'`);
-   - `VERSION` em `sw.js` (ex.: `'nerv2-v2.1.0'`).
+   - `VERSION` em `js/app.js` (ex.: `'2.2.0'`);
+   - `VERSION` em `sw.js` (ex.: `'nerv2-v2.2.0'`).
 
    O sufixo do cache tem que **terminar** com a versão do app — é assim que a
    tela de Ajustes detecta divergência.

@@ -4,6 +4,7 @@ import { state, saveState } from '../state.js';
 import { escapeHtml, uid } from '../util.js';
 import { ICON, modal, modalError, confirmDialog, toast } from '../ui.js';
 import { parseTextoFicha } from '../importers.js';
+import { fichaABCD, RESUMO_ABCD } from '../modelos.js';
 import { go, render } from '../router.js';
 import { weekStreak } from '../progress.js';
 
@@ -67,23 +68,60 @@ export function screenFichas(params, el) {
   });
 }
 
+/**
+ * Nova ficha, em branco ou já com a divisão ABCD montada.
+ *
+ * A ficha ABCD entra sozinha na primeira abertura do app, mas quem já tem
+ * dados no aparelho nunca veria essa semente — daí a opção aqui, que evita
+ * digitar os 25 exercícios um a um.
+ */
 async function novaFicha() {
   let nome = '';
+  let modelo = 'vazia';
   const v = await modal({
     title: 'Nova Ficha',
-    body: '<label>Nome da ficha</label><input id="inpNome" placeholder="Ex: Hipertrofia A/B" />',
+    body:
+      '<label>Nome da ficha</label>' +
+      '<input id="inpNome" placeholder="Ex: Hipertrofia A/B" />' +
+      '<label style="margin-top:6px;">Começar com</label>' +
+      '<select id="inpModelo">' +
+        '<option value="vazia">Ficha em branco</option>' +
+        '<option value="abcd">Modelo ABCD (' + RESUMO_ABCD.treinos + ' treinos)</option>' +
+      '</select>' +
+      '<div class="hint" id="hintModelo">Você cria os treinos depois, um a um.</div>',
     buttons: [
       { label: 'CRIAR', cls: 'btn-primary', value: 'ok', onClick(ov) {
+        modelo = ov.querySelector('#inpModelo').value;
         nome = ov.querySelector('#inpNome').value.trim();
+        if (!nome && modelo === 'abcd') nome = 'Ficha ABCD';
         if (!nome) { modalError('Digite um nome'); return false; }
       } },
       { label: 'CANCELAR', cls: 'btn-ghost', value: null },
     ],
+    onMount(ov) {
+      const sel = ov.querySelector('#inpModelo');
+      const hint = ov.querySelector('#hintModelo');
+      const inp = ov.querySelector('#inpNome');
+      sel.onchange = () => {
+        const abcd = sel.value === 'abcd';
+        hint.textContent = abcd
+          ? RESUMO_ABCD.exercicios + ' exercícios: A — Peito/Tríceps · B — Costas/Bíceps · '
+            + 'C — Pernas · D — Ombros/Abdômen. Séries, reps e descanso já vêm preenchidos; '
+            + 'a carga você registra treinando.'
+          : 'Você cria os treinos depois, um a um.';
+        if (abcd) inp.placeholder = 'Ficha ABCD';
+        else inp.placeholder = 'Ex: Hipertrofia A/B';
+      };
+    },
   });
   if (v !== 'ok') return;
-  const ficha = { id: uid('f'), nome, treinos: [] };
+
+  const ficha = modelo === 'abcd' ? fichaABCD(nome) : { id: uid('f'), nome, treinos: [] };
   state.fichas.push(ficha);
   saveState();
+  if (modelo === 'abcd') {
+    toast(RESUMO_ABCD.treinos + ' treinos e ' + RESUMO_ABCD.exercicios + ' exercícios criados', 'ok');
+  }
   go('/ficha/' + ficha.id);
 }
 

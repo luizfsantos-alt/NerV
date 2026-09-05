@@ -20,7 +20,7 @@
 // seguem cache-first: são grandes, mudam junto com a versão e não vale gastar
 // rede com elas.
 
-const VERSION = 'nerv2-v2.1.0';
+const VERSION = 'nerv2-v2.2.0';
 const CACHE = VERSION;
 
 // Rede lenta não pode segurar a abertura do app. Passou disto, o cache assume.
@@ -42,6 +42,7 @@ const PRECACHE = [
   './js/timers.js',
   './js/progress.js',
   './js/importers.js',
+  './js/modelos.js',
   './js/xlsx-lite.js',
   './js/screens/fichas.js',
   './js/screens/treinos.js',
