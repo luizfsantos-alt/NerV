@@ -1,4 +1,4 @@
-// Estatísticas: números totais, atividade das últimas 8 semanas e recordes.
+// Stats: números totais, atividade das últimas 8 semanas e recordes.
 
 import { state } from '../state.js';
 import { escapeHtml, fmtDuration, fmtDateShort, startOfWeek, volumeOfSets, repsToNumber } from '../util.js';
@@ -14,7 +14,7 @@ export function screenStats(params, el) {
     a + ex.sets.reduce((b, set) => b + repsToNumber(set.reps), 0), 0), 0);
   const totalKm = c.reduce((s, h) => s + h.distance, 0);
 
-  let html = '<div class="back" id="back">' + ICON.back + 'Voltar</div><h2>ESTATÍSTICAS</h2>';
+  let html = '<div class="back" id="back">' + ICON.back + 'Voltar</div><h2>STATS</h2>';
 
   if (!w.length && !c.length) {
     html += '<div class="empty">Sem dados ainda.<br>Conclua um treino para ver seus números.</div>';
