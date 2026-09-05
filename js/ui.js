@@ -22,17 +22,25 @@ export const ICON = {
 };
 
 // ===== toast =====
-export function toast(msg, kind = '') {
+// `onClick`, quando passado, mantém o toast na tela até ser tocado (usado
+// pelo aviso de atualização do service worker, que não deve sumir sozinho).
+export function toast(msg, kind = '', onClick = null) {
   const wrap = document.getElementById('toastWrap');
   const el = document.createElement('div');
   el.className = 'toast ' + kind;
   el.textContent = msg;
   wrap.appendChild(el);
-  setTimeout(() => {
+  const dismiss = () => {
     el.style.transition = 'opacity .25s';
     el.style.opacity = '0';
     setTimeout(() => el.remove(), 260);
-  }, kind === 'ok' ? 2200 : 3200);
+  };
+  if (onClick) {
+    el.style.cursor = 'pointer';
+    el.addEventListener('click', () => { onClick(); dismiss(); });
+  } else {
+    setTimeout(dismiss, kind === 'ok' ? 2200 : 3200);
+  }
 }
 
 // ===== modal genérico =====
