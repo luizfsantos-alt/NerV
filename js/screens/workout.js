@@ -147,10 +147,6 @@ function bind(el) {
           if (alvo > 0) { set.reps = String(Math.round(alvo)); row.querySelector('.reps').value = set.reps; }
         }
         vibrate(40);
-        // Marcar a série é exatamente o momento de começar a descansar.
-        const ex = sessao.exercicios[i];
-        const ultima = j === ex.sets.length - 1;
-        if (!ultima && ex.intervalo > 0) startRest(ex.intervalo, ex.nome + ' · série ' + (j + 2));
       }
       const fechouAgora = markExerciseDone(i);
       updateProgress();
