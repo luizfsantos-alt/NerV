@@ -114,7 +114,8 @@ header {
   position: relative; z-index: 20;
 }
 .logo-img {
-  height: 52px; width: auto; cursor:pointer;
+  height: 72px; width: auto; cursor:pointer;
+  mix-blend-mode: screen;
 }
 
 .header-actions { display:flex; align-items:center; gap:8px; }
