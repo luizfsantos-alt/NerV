@@ -40,43 +40,101 @@ export class Stopwatch {
 
 // ===== timer de descanso =====
 // Um só por vez, com alvo em timestamp — sobrevive à tela apagada.
+//
+// Estourar o tempo não é conquista: cada segundo a mais é corpo mole. Por isso
+// não existe estado "descanso completo" em verde — ao zerar, a barra passa a
+// contar o atraso para cima, pulsa em vermelho cada vez mais rápido e cutuca de
+// tempos em tempos até você voltar para a série.
 let restEndsAt = null;
 let restTotal = 0;
 let restHandle = null;
 let restLabel = '';
 let restDoneFired = false;
+let restNextNag = 0;   // segundo de atraso em que cutucamos de novo
+let restPulse = '';    // duração de pulsação já aplicada no CSS
+
+const NAG_EVERY = 15;  // s entre cutucadas
+const NAG_UNTIL = 180; // s de atraso: passando disso, só o visual insiste
+const GIVE_UP = 300;   // s de atraso: descanso abandonado, a barra sai da tela
 
 const bar = () => document.getElementById('restBar');
+
+const mmss = s => (s < 60
+  ? String(s).padStart(2, '0')
+  : Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'));
+
+// A cobrança sobe junto com o atraso. Frases curtas: a barra é uma linha só.
+function overMessage(over) {
+  if (over < 15) return 'volta pra série';
+  if (over < 45) return 'corpo mole · volta';
+  return 'levanta · agora';
+}
+
+function setText(node, txt) { if (node.textContent !== txt) node.textContent = txt; }
 
 function paintRest() {
   const el = bar();
   if (!el) return;
-  const left = Math.max(0, Math.round((restEndsAt - Date.now()) / 1000));
+  const left = Math.round((restEndsAt - Date.now()) / 1000);
   const count = el.querySelector('.rest-count');
-  const meta = el.querySelector('.rest-meta');
+  const text = el.querySelector('.rest-text');
   const fill = el.querySelector('.rest-progress > i');
+  const skip = document.getElementById('restSkip');
 
   if (left > 0) {
-    count.textContent = left < 60
-      ? String(left).padStart(2, '0')
-      : Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0');
-    meta.firstChild.textContent = restLabel;
+    setText(count, mmss(left));
+    setText(text, restLabel);
     fill.style.width = (100 - (left / restTotal) * 100).toFixed(1) + '%';
-    el.classList.remove('done');
-  } else {
-    count.textContent = 'GO';
-    meta.firstChild.textContent = restLabel + ' · descanso completo';
-    fill.style.width = '100%';
-    el.classList.add('done');
-    if (!restDoneFired) {
-      restDoneFired = true;
-      // Sinal triplo: som, vibração e flash — para funcionar com o celular
-      // no bolso, na mão ou no chão.
-      beep(3, 980);
-      vibrate([200, 100, 200, 100, 300]);
-      flash();
-    }
-    if (left < -8) stopRest();
+    if (el.classList.contains('over')) clearOverState(el, skip);
+    return;
+  }
+
+  const over = -left;
+  setText(count, '+' + mmss(over));
+  setText(text, overMessage(over));
+  fill.style.width = '100%';
+  el.classList.add('over');
+  document.body.classList.add('rest-over');
+  if (skip) {
+    setText(skip, 'VOLTAR');
+    skip.title = 'Encerrar o descanso e voltar para a série';
+  }
+
+  // Quanto maior o atraso, mais rápida a pulsação (1.10s → 0.45s em 1 minuto).
+  const dur = (1.1 - Math.min(over, 60) / 60 * 0.65).toFixed(2) + 's';
+  // Vai no <body> para valer também no pulso da tela inteira (CSS).
+  if (dur !== restPulse) { restPulse = dur; document.body.style.setProperty('--rest-pulse', dur); }
+
+  if (!restDoneFired) {
+    restDoneFired = true;
+    restNextNag = NAG_EVERY;
+    // Sinal triplo: som, vibração e flash — para funcionar com o celular
+    // no bolso, na mão ou no chão.
+    beep(3, 980);
+    vibrate([200, 100, 200, 100, 300]);
+    flash();
+  } else if (over >= restNextNag && over <= NAG_UNTIL) {
+    // Cutucada periódica: não deixa o descanso virar intervalo de novela.
+    restNextNag = over + NAG_EVERY;
+    beep(2, 1180);
+    vibrate([120, 80, 200]);
+    flash();
+  }
+
+  // Atraso longo demais — o descanso virou pausa: some com a barra em vez de
+  // pulsar (e gastar bateria) para sempre.
+  if (over >= GIVE_UP) stopRest();
+}
+
+function clearOverState(el, skip) {
+  el.classList.remove('over');
+  document.body.classList.remove('rest-over');
+  document.body.style.removeProperty('--rest-pulse');
+  restPulse = '';
+  const btn = skip || document.getElementById('restSkip');
+  if (btn) {
+    setText(btn, 'PULAR');
+    btn.title = 'Pular descanso';
   }
 }
 
@@ -86,6 +144,7 @@ export function startRest(seconds, label) {
   restEndsAt = Date.now() + restTotal * 1000;
   restLabel = label || 'Descanso';
   restDoneFired = false;
+  restNextNag = 0;
   const el = bar();
   el.classList.add('active');
   document.body.classList.add('resting');
@@ -99,18 +158,21 @@ function onVisible() { if (!document.hidden && restHandle) paintRest(); }
 
 export function stopRest() {
   clearInterval(restHandle); restHandle = null;
-  restEndsAt = null; restDoneFired = false;
+  restEndsAt = null; restDoneFired = false; restNextNag = 0;
   document.removeEventListener('visibilitychange', onVisible);
   const el = bar();
-  if (el) { el.classList.remove('active', 'done'); }
+  if (el) { el.classList.remove('active'); clearOverState(el); }
   document.body.classList.remove('resting');
 }
 
 export function addRestTime(sec) {
   if (!restEndsAt) return;
-  restEndsAt += sec * 1000;
+  // Com o tempo estourado, os segundos contam a partir de agora — somados ao
+  // alvo vencido eles cairiam no passado e a barra seguiria em atraso.
+  restEndsAt = Math.max(Date.now(), restEndsAt) + sec * 1000;
   restTotal += sec;
   restDoneFired = false;
+  restNextNag = 0;
   paintRest();
 }
 
