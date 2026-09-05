@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="description" content="NERv2 — diário de treino e cardio que funciona offline.">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="NERv2">
+<title>NERv2 — Neural Engine Routine</title>
+
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<canvas id="ambient" aria-hidden="true"></canvas>
+<div class="grid-overlay" aria-hidden="true"></div>
+<div class="ner-texture" aria-hidden="true"></div>
+<img class="mascot-bg" src="assets/mascot.jpg" alt="" aria-hidden="true" decoding="async">
+<img class="mascot-bg-alt" src="assets/mascot-head.jpg" alt="" aria-hidden="true" decoding="async">
+<div class="ner-vignette" aria-hidden="true"></div>
+<div class="ner-scanlines" aria-hidden="true"></div>
+<div class="vignette" id="vignette" aria-hidden="true"></div>
+<div class="scanline" id="scanline" aria-hidden="true"></div>
+
+<div id="app">
+  <header>
+    <img class="logo-img" id="logo" src="assets/logo.jpg" alt="NERv2" width="200" height="109">
+    <div class="header-actions">
+      <button class="icon-btn" id="btnAjustes" title="Ajustes" aria-label="Ajustes">
+        <svg viewBox="0 0 24 24"><path d="M19.14 12.94a7.07 7.07 0 0 0 0-1.88l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.3 7.3 0 0 0-1.62-.94l-.36-2.54a.5.5 0 0 0-.5-.42h-3.84a.5.5 0 0 0-.5.42l-.36 2.54c-.58.24-1.12.55-1.62.94l-2.39-.96a.5.5 0 0 0-.6.22L2.66 8.84a.5.5 0 0 0 .12.64l2.03 1.58a7.07 7.07 0 0 0 0 1.88l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32c.13.22.39.3.6.22l2.39-.96c.5.39 1.04.7 1.62.94l.36 2.54c.04.24.25.42.5.42h3.84c.25 0 .46-.18.5-.42l.36-2.54c.58-.24 1.12-.55 1.62-.94l2.39.96c.22.08.47 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z"/></svg>
+      </button>
+      <button class="icon-btn" id="fxToggle" aria-pressed="true" title="Efeitos visuais">
+        <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span>FX</span>
+      </button>
+    </div>
+  </header>
+  <main id="main"></main>
+</div>
+
+<!-- Barra de descanso: fixa no rodapé, visível de qualquer ponto da tela. -->
+<div class="rest-bar" id="restBar" role="timer" aria-live="polite">
+  <div class="rest-count">00</div>
+  <div class="rest-meta">
+    Descanso
+    <div class="rest-progress"><i style="width:0%"></i></div>
+  </div>
+  <button class="btn btn-secondary btn-small" id="restAdd" title="Somar 30 segundos">+30s</button>
+  <button class="btn btn-ghost btn-small" id="restSkip" title="Pular descanso">PULAR</button>
+</div>
+
+<div class="pace-screen" id="paceScreen">
+  <div class="pace-value" id="paceValue">00:00/km</div>
+  <div style="font-family:'Share Tech Mono',monospace;font-size:14px;color:var(--gray);margin-top:10px;">
+    <span id="paceDist">0.00 km</span> &middot; <span id="paceTime">00:00</span>
+  </div>
+</div>
+
+<div class="singularity" id="singularity">
+  <div class="singularity-text">+1</div>
+  <div class="singularity-sub">SINGULARITY</div>
+  <div class="singularity-list"></div>
+</div>
+
+<div class="install-banner" id="installBanner">
+  <div class="txt"><b>Instalar o NERv2</b><br>abre em tela cheia e funciona sem internet</div>
+  <button class="btn btn-primary btn-small" id="btnInstall">INSTALAR</button>
+  <button class="btn btn-ghost btn-small" id="btnInstallNo">AGORA NÃO</button>
+</div>
+
+<div class="toast-wrap" id="toastWrap" aria-live="polite"></div>
+
+<noscript>
+  <div style="padding:40px 20px;text-align:center;font-family:monospace;color:#f0f0f0;">
+    O NERv2 precisa de JavaScript para funcionar.
+  </div>
+</noscript>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

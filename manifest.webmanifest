@@ -1,0 +1,41 @@
+{
+  "name": "NERv2 — Neural Engine Routine",
+  "short_name": "NERv2",
+  "description": "Diário de treino e cardio. Funciona 100% offline.",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "start_url": "./index.html#/fichas",
+  "scope": "./",
+  "id": "/nerv2/",
+  "display": "standalone",
+  "display_override": ["standalone", "fullscreen"],
+  "orientation": "portrait",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "categories": ["health", "fitness", "lifestyle"],
+  "icons": [
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Histórico",
+      "short_name": "Histórico",
+      "url": "./index.html#/historico",
+      "icons": [{ "src": "assets/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Cardio",
+      "short_name": "Cardio",
+      "url": "./index.html#/cardio",
+      "icons": [{ "src": "assets/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Estatísticas",
+      "short_name": "Stats",
+      "url": "./index.html#/stats",
+      "icons": [{ "src": "assets/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
