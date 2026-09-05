@@ -29,6 +29,18 @@ export function screenAjustes(params, el) {
       '<input type="file" class="hidden-file" id="importFile" accept="application/json,.json" />' +
     '</div>' +
 
+    '<div class="card"><h3>Atualização</h3>' +
+      '<div class="card-sub" style="line-height:2;">' +
+        'app <span id="appVer">—</span><br>' +
+        'cache <span id="swVer">—</span><br>' +
+        '<span id="verWarn"></span>' +
+      '</div>' +
+      '<div class="hint" style="margin-top:8px;">Forçar atualização limpa o cache e reinstala o app. ' +
+        '<b>Suas fichas e seu histórico não são apagados</b> — só os arquivos do programa.</div>' +
+      '<button class="btn btn-primary btn-small" id="btnForce" style="width:100%;">FORÇAR ATUALIZAÇÃO</button>' +
+      '<button class="btn btn-secondary btn-small" id="btnUpdate" style="width:100%;margin-top:8px;">PROCURAR ATUALIZAÇÃO</button>' +
+    '</div>' +
+
     '<div class="card"><h3>Zona de risco</h3>' +
       '<div class="hint">Apaga fichas, treinos e histórico deste aparelho. Não tem como desfazer.</div>' +
       '<button class="btn btn-danger btn-small" id="btnWipe" style="width:100%;">APAGAR TUDO</button>' +
@@ -37,15 +49,14 @@ export function screenAjustes(params, el) {
     '<div class="card"><h3>Sobre</h3>' +
       '<div class="card-sub" style="line-height:2;">' +
         'NERv2 — Neural Engine Routine<br>' +
-        'versão <span id="appVer">—</span><br>' +
         'funciona 100% offline<br>' +
         '<span id="netState">—</span>' +
       '</div>' +
-      '<button class="btn btn-secondary btn-small" id="btnUpdate" style="width:100%;margin-top:12px;">PROCURAR ATUALIZAÇÃO</button>' +
     '</div>';
 
   el.querySelector('#back').onclick = back;
   el.querySelector('#appVer').textContent = (window.__NERV_VERSION__ || 'dev');
+  pintarVersaoSW(el);
   pintarRede(el);
   window.addEventListener('online', () => pintarRede(el));
   window.addEventListener('offline', () => pintarRede(el));
@@ -116,9 +127,64 @@ export function screenAjustes(params, el) {
     const reg = await navigator.serviceWorker.getRegistration();
     if (!reg) { toast('App ainda não instalado como offline.'); return; }
     toast('Procurando atualização…');
-    await reg.update();
-    setTimeout(() => toast(reg.waiting ? 'Atualização pronta — reabra o app.' : 'Você já está na versão mais recente.', 'ok'), 1200);
+    try { await reg.update(); } catch (e) { toast('Sem conexão para procurar atualização.'); return; }
+    setTimeout(() => {
+      if (reg.waiting) {
+        // Nada de "reabra o app": o toque aplica a troca na hora.
+        toast('Atualização pronta — toque para aplicar.', 'ok', () => reg.waiting?.postMessage('skipWaiting'));
+      } else {
+        toast('Você já está na versão mais recente.', 'ok');
+      }
+      pintarVersaoSW(el);
+    }, 1200);
   };
+
+  // O botão que substitui "apagar os dados de navegação" na mão.
+  el.querySelector('#btnForce').onclick = async () => {
+    if (!await confirmDialog('Forçar atualização?',
+      'O cache e o service worker deste aparelho serão apagados e o app vai recarregar do zero. ' +
+      'Suas fichas, treinos e histórico NÃO serão apagados.', 'FORÇAR', false)) return;
+    toast('Limpando cache…');
+    // A função mora no index.html — que é o arquivo mais recente que o
+    // aparelho tem — justamente para funcionar mesmo com o js/ desatualizado.
+    if (typeof window.nervHardReset === 'function') { await window.nervHardReset(); return; }
+    // Shell antigo demais para ter a função: faz o mesmo aqui.
+    try {
+      const regs = await navigator.serviceWorker?.getRegistrations?.() || [];
+      await Promise.all(regs.map(r => r.unregister()));
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    } catch (e) { console.warn('[nerv] limpeza parcial', e); }
+    location.replace(location.pathname + '?nerv-reset=' + Date.now() + '#/fichas');
+  };
+}
+
+/**
+ * Pergunta ao service worker em que versão ele está. Divergir do número do app
+ * é o sintoma exato do cache preso — então mostramos o aviso em vez de deixar
+ * o usuário adivinhar por que a novidade não chegou.
+ */
+function pintarVersaoSW(el) {
+  const alvo = el.querySelector('#swVer');
+  const aviso = el.querySelector('#verWarn');
+  if (!alvo) return;
+
+  const sw = navigator.serviceWorker && navigator.serviceWorker.controller;
+  if (!sw) { alvo.textContent = 'não instalado'; return; }
+
+  const canal = new MessageChannel();
+  const prazo = setTimeout(() => { alvo.textContent = 'sem resposta'; }, 1500);
+  canal.port1.onmessage = ev => {
+    clearTimeout(prazo);
+    const v = (ev.data && ev.data.version) || '—';
+    alvo.textContent = v;
+    // 'nerv2-v2.1.0' precisa terminar com a versão do app, '2.1.0'.
+    if (aviso && !v.endsWith(window.__NERV_VERSION__ || '')) {
+      aviso.innerHTML = '<span style="color:var(--red);">o cache ficou para trás — force a atualização</span>';
+    }
+  };
+  try { sw.postMessage({ type: 'version' }, [canal.port2]); }
+  catch (e) { clearTimeout(prazo); alvo.textContent = 'sem resposta'; }
 }
 
 function pintarRede(el) {

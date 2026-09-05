@@ -32,7 +32,7 @@
       "icons": [{ "src": "assets/icon-192.png", "sizes": "192x192" }]
     },
     {
-      "name": "Estatísticas",
+      "name": "Stats",
       "short_name": "Stats",
       "url": "./index.html#/stats",
       "icons": [{ "src": "assets/icon-192.png", "sizes": "192x192" }]

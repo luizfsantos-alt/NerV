@@ -13,8 +13,16 @@ import { screenStats } from './screens/stats.js';
 import { screenAjustes } from './screens/ajustes.js';
 import { setBeforeLeave } from './router.js';
 
-export const VERSION = '2.0.0';
+// Anda junto com o VERSION do sw.js. A tela de Ajustes mostra os dois lado a
+// lado justamente para denunciar quando o service worker fica para trás.
+export const VERSION = '2.1.0';
 window.__NERV_VERSION__ = VERSION;
+
+// O resgate de emergência do index.html recarrega com ?nerv-reset=... para
+// furar o cache HTTP. Cumprido o papel, o parâmetro sai do endereço.
+if (location.search.includes('nerv-reset=')) {
+  history.replaceState(null, '', location.pathname + (location.hash || '#/fichas'));
+}
 
 route('fichas', (p, el) => { setBeforeLeave(null); screenFichas(p, el); });
 route('ficha', (p, el) => { setBeforeLeave(null); screenTreinos(p, el); });
@@ -44,11 +52,42 @@ document.getElementById('restSkip').onclick = async () => {
 
 startRouter();
 
+// Sinaliza para o vigia de inicialização do index.html que o app subiu.
+window.__NERV_BOOTED__ = true;
+
 // ===== ciclo de vida do PWA =====
+//
+// Duas peças resolvem o app que nunca atualizava:
+//  - `updateViaCache: 'none'` impede que o próprio sw.js venha do cache HTTP;
+//  - `procurarAtualizacao()` roda na carga e sempre que o app volta do segundo
+//    plano. Num PWA instalado quase não existe navegação de verdade, então sem
+//    isso o navegador podia passar dias sem checar por uma versão nova.
+const UPDATE_INTERVAL = 15 * 60 * 1000;
+let ultimaChecagem = 0;
+let registro = null;
+
+async function procurarAtualizacao(forcar = false) {
+  if (!registro) return;
+  const agora = Date.now();
+  if (!forcar && agora - ultimaChecagem < UPDATE_INTERVAL) return;
+  ultimaChecagem = agora;
+  try { await registro.update(); } catch (e) { /* offline: tenta na próxima */ }
+}
+
+/** Avisa que há versão nova e aplica a troca no toque, sem fechar o app. */
+function avisarAtualizacao() {
+  toast('Nova versão disponível — toque para atualizar.', 'ok', () => {
+    registro?.waiting?.postMessage('skipWaiting');
+  });
+}
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
-      const reg = await navigator.serviceWorker.register('./sw.js', { scope: './' });
+      registro = await navigator.serviceWorker.register('./sw.js', {
+        scope: './',
+        updateViaCache: 'none',
+      });
 
       // Uma versão nova ficou pronta enquanto o app estava aberto. Em vez de
       // exigir fechar tudo, o toque no aviso já aplica a troca na hora.
@@ -58,21 +97,28 @@ if ('serviceWorker' in navigator) {
         reloading = true;
         window.location.reload();
       });
-      reg.addEventListener('updatefound', () => {
-        const sw = reg.installing;
+
+      // Já havia uma versão esperando de uma sessão anterior.
+      if (registro.waiting && navigator.serviceWorker.controller) avisarAtualizacao();
+
+      registro.addEventListener('updatefound', () => {
+        const sw = registro.installing;
         if (!sw) return;
         sw.addEventListener('statechange', () => {
-          if (sw.state === 'installed' && navigator.serviceWorker.controller) {
-            toast('Nova versão disponível — toque para atualizar.', 'ok', () => {
-              reg.waiting?.postMessage('skipWaiting');
-            });
-          }
+          if (sw.state === 'installed' && navigator.serviceWorker.controller) avisarAtualizacao();
         });
       });
+
+      procurarAtualizacao(true);
     } catch (e) {
       console.warn('[nerv] service worker não registrado:', e);
     }
   });
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) procurarAtualizacao();
+  });
+  window.addEventListener('online', () => procurarAtualizacao(true));
 }
 
 // Banner de instalação — só aparece se o navegador realmente puder instalar.

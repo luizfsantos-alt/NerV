@@ -1,4 +1,4 @@
-// Tela inicial: lista de fichas + acessos a histórico, estatísticas e ajustes.
+// Tela inicial: lista de fichas + acessos a histórico, stats e ajustes.
 
 import { state, saveState } from '../state.js';
 import { escapeHtml, uid } from '../util.js';
@@ -21,7 +21,7 @@ export function screenFichas(params, el) {
   html += '<button class="btn btn-secondary" id="btnCardio">' + ICON.gps + 'Cardio Avulso</button>';
   html += '<div class="grid-2">';
   html += '<button class="btn btn-secondary" id="btnHistorico">' + ICON.history + 'Histórico</button>';
-  html += '<button class="btn btn-secondary" id="btnStats">' + ICON.stats + 'Estatísticas</button>';
+  html += '<button class="btn btn-secondary" id="btnStats">' + ICON.stats + 'Stats</button>';
   html += '</div>';
 
   if (!state.fichas.length) {

@@ -265,6 +265,80 @@ label {
   transition: border-left-color 0.3s;
 }
 .exercise-card.all-done { border-left-color: var(--green); }
+
+/* ===== desligamento estilo TV de tubo =====
+   Fechou todas as séries, o card colapsa numa linha, estoura o brilho e some
+   no ponto — virando a barra .ex-stub. Tocar na barra religa. */
+.exercise-card.crt-anim { overflow:hidden; will-change:height; }
+.exercise-card.crt-off .ex-body { animation: crt-off 420ms cubic-bezier(0.5,0,0.75,0) both; }
+.exercise-card.crt-on  .ex-body { animation: crt-on  420ms cubic-bezier(0.25,1,0.5,1) both; }
+.exercise-card.crt-off .ex-body,
+.exercise-card.crt-on  .ex-body { transform-origin:center center; }
+
+@keyframes crt-off {
+  0%   { transform:scale(1,1);        filter:brightness(1) saturate(1);   opacity:1; }
+  35%  { transform:scale(1.03,0.04);  filter:brightness(2.6) saturate(0.2); opacity:1; }
+  55%  { transform:scale(1,0.012);    filter:brightness(4.5) saturate(0);   opacity:1; }
+  78%  { transform:scale(0.35,0.01);  filter:brightness(7) saturate(0);     opacity:1; }
+  100% { transform:scale(0,0.008);    filter:brightness(9) saturate(0);     opacity:0; }
+}
+@keyframes crt-on {
+  0%   { transform:scale(0,0.008);   filter:brightness(9) saturate(0);   opacity:0; }
+  22%  { transform:scale(1,0.012);   filter:brightness(6) saturate(0);   opacity:1; }
+  55%  { transform:scale(1,0.08);    filter:brightness(3) saturate(0.4); opacity:1; }
+  100% { transform:scale(1,1);       filter:brightness(1) saturate(1);   opacity:1; }
+}
+
+/* A linha branca que sobra na tela do tubo por um instante. */
+.exercise-card.crt-off::after,
+.exercise-card.crt-on::after {
+  content:''; position:absolute; left:0; right:0; top:50%; height:2px; z-index:3;
+  background:#fff; box-shadow:0 0 20px 5px rgba(255,255,255,0.85);
+  transform:translateY(-50%) scaleX(0); pointer-events:none;
+  animation: crt-line 420ms ease-out both;
+}
+.exercise-card.crt-on::after { animation-direction: reverse; }
+@keyframes crt-line {
+  0%, 22% { opacity:0; transform:translateY(-50%) scaleX(0.15); }
+  42%     { opacity:1; transform:translateY(-50%) scaleX(1); }
+  72%     { opacity:1; transform:translateY(-50%) scaleX(1); }
+  100%    { opacity:0; transform:translateY(-50%) scaleX(0); }
+}
+
+/* Barra compacta que ocupa o lugar do exercício desligado. */
+.ex-stub { display:none; }
+.exercise-card.collapsed { padding:0; border-left-color:var(--green); background:rgba(10,10,10,0.7); }
+.exercise-card.collapsed .ex-body { display:none; }
+.exercise-card.collapsed .ex-stub {
+  display:flex; align-items:center; gap:10px; width:100%;
+  padding:12px 14px; cursor:pointer; text-align:left;
+}
+.ex-stub-check { color:var(--green); font-size:15px; flex-shrink:0; }
+.ex-stub-name {
+  font-family:var(--font-display); font-size:16px; letter-spacing:0.05em;
+  color:var(--gray); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.ex-stub-meta {
+  font-family:var(--font-mono); font-size:10px; color:var(--muted);
+  letter-spacing:0.08em; white-space:nowrap;
+}
+.ex-stub-open {
+  margin-left:auto; flex-shrink:0;
+  font-family:var(--font-mono); font-size:10px; letter-spacing:0.12em; color:var(--red);
+}
+.exercise-card.collapsed .ex-stub:hover .ex-stub-name,
+.exercise-card.collapsed .ex-stub:focus-visible .ex-stub-name { color:var(--white); }
+.exercise-card.collapsed .ex-stub:focus-visible { outline:2px solid var(--red); outline-offset:-2px; }
+
+/* Ocultar na mão só faz sentido com o exercício inteiro fechado. */
+.hide-ex { display:none; }
+.exercise-card.all-done .hide-ex { display:flex; }
+
+/* FX desligado: sem tubo, sem brilho — a troca é seca. */
+body.fx-off .exercise-card.crt-off .ex-body,
+body.fx-off .exercise-card.crt-on .ex-body { animation:none; }
+body.fx-off .exercise-card.crt-off::after,
+body.fx-off .exercise-card.crt-on::after { display:none; }
 .exercise-name {
   font-family:var(--font-display); font-size:24px; letter-spacing:0.06em;
   margin-bottom:6px; color:var(--white);
@@ -528,6 +602,29 @@ body.rest-over:not(.fx-off)::after {
 .install-banner.active { display:flex; }
 .install-banner .txt { flex:1; font-family:var(--font-mono); font-size:11px; color:var(--gray); letter-spacing:0.08em; line-height:1.6; }
 .install-banner .txt b { color:var(--white); }
+
+/* Painel de resgate. Sobe sozinho quando os módulos de js/ não carregam, então
+   não pode depender de nada que aquele código monte. */
+.recovery {
+  position:fixed; inset:0; z-index:200; background:rgba(10,10,10,0.96);
+  display:flex; align-items:center; justify-content:center; padding:24px;
+}
+.recovery[hidden] { display:none; }
+.recovery-box {
+  max-width:380px; width:100%; background:#0a0a0a; border:2px solid var(--red);
+  padding:22px; box-shadow: 0 24px 60px -18px rgba(255,0,64,0.8);
+}
+.recovery-box b {
+  display:block; font-family:var(--font-display); font-size:22px;
+  letter-spacing:0.06em; color:var(--white); margin-bottom:10px;
+}
+.recovery-box p {
+  font-family:var(--font-mono); font-size:12px; line-height:1.8; color:var(--gray);
+  margin:0 0 16px;
+}
+.recovery-box p b { display:inline; font-family:inherit; font-size:inherit; color:var(--white); letter-spacing:inherit; }
+.recovery-box .btn { width:100%; }
+.recovery-box .btn + .btn { margin-top:8px; }
 
 .vignette {
   position:fixed; inset:0; pointer-events:none; z-index:4;

@@ -6,13 +6,15 @@
 //  - o descanso é uma barra fixa única, com som/vibração e +30s;
 //  - a tela não apaga no meio do treino (Wake Lock);
 //  - sair com treino em andamento pede confirmação;
-//  - o "+1 SINGULARITY" só aparece quando há recorde de verdade.
+//  - o "+1 SINGULARITY" só aparece quando há recorde de verdade;
+//  - exercício com todas as séries fechadas se desliga como uma TV de tubo e
+//    vira uma barra compacta, que reabre no toque.
 
 import { state, saveState } from '../state.js';
 import { escapeHtml, fmtTime, uid, num, repsToNumber, volumeOfSets } from '../util.js';
 import { ICON, confirmDialog, toast } from '../ui.js';
 import { Stopwatch, startRest, stopRest, isResting, keepScreenOn } from '../timers.js';
-import { singularity, redBlink, vibrate } from '../fx.js';
+import { singularity, redBlink, vibrate, isFxOn } from '../fx.js';
 import { suggestSets, detectPRs, lastPerformance } from '../progress.js';
 import { go, back, setBeforeLeave } from '../router.js';
 import { findFicha } from './treinos.js';
@@ -63,7 +65,16 @@ function paint(el) {
   html += '<div id="progressLine" class="card-sub" style="text-align:center;margin:12px 0 18px;"></div>';
 
   exercicios.forEach((ex, i) => {
-    html += '<div class="exercise-card" data-ex="' + i + '">';
+    html += '<div class="exercise-card' + (ex.collapsed ? ' collapsed' : '') + '" data-ex="' + i + '">';
+    // Barra compacta que fica no lugar do card depois do desligamento.
+    html += '<div class="ex-stub" data-stub="' + i + '" role="button" tabindex="0" ' +
+      'aria-label="Reabrir ' + escapeHtml(ex.nome) + '">' +
+      '<span class="ex-stub-check">✓</span>' +
+      '<span class="ex-stub-name">' + escapeHtml(ex.nome) + '</span>' +
+      '<span class="ex-stub-meta"></span>' +
+      '<span class="ex-stub-open">REABRIR</span>' +
+    '</div>';
+    html += '<div class="ex-body">';
     html += '<div class="exercise-name">' + escapeHtml(ex.nome) + '</div>';
     html += '<div class="card-sub" style="margin-bottom:8px;">' +
       ex.series + '× ' + escapeHtml(ex.reps) + ' · descanso ' + ex.intervalo + 's</div>';
@@ -89,7 +100,10 @@ function paint(el) {
     });
     html += '</div>';
     html += '<button class="btn btn-secondary btn-small rest" data-ex="' + i + '" style="margin-top:10px;width:100%;">' + ICON.rest + 'Descanso ' + ex.intervalo + 's</button>';
-    html += '</div>';
+    // Só aparece com o exercício fechado: permite ocultar de novo depois de reabrir.
+    html += '<button class="btn btn-ghost btn-small hide-ex" data-hide="' + i + '" style="margin-top:6px;width:100%;">OCULTAR EXERCÍCIO</button>';
+    html += '</div>';   // .ex-body
+    html += '</div>';   // .exercise-card
   });
 
   html += '<button class="btn btn-primary" id="btnConcluir">CONCLUIR</button>';
@@ -138,8 +152,10 @@ function bind(el) {
         const ultima = j === ex.sets.length - 1;
         if (!ultima && ex.intervalo > 0) startRest(ex.intervalo, ex.nome + ' · série ' + (j + 2));
       }
-      markExerciseDone(i);
+      const fechouAgora = markExerciseDone(i);
       updateProgress();
+      // Só na transição: reabrir um exercício já completo não o fecha de novo.
+      if (fechouAgora) desligarCRT(i);
     };
   });
 
@@ -147,6 +163,16 @@ function bind(el) {
     const ex = sessao.exercicios[+b.dataset.ex];
     startRest(ex.intervalo || 60, ex.nome);
   });
+
+  el.querySelectorAll('.ex-stub').forEach(stub => {
+    const i = +stub.dataset.stub;
+    stub.onclick = () => ligarCRT(i);
+    stub.onkeydown = e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ligarCRT(i); }
+    };
+  });
+
+  el.querySelectorAll('.hide-ex').forEach(b => b.onclick = () => desligarCRT(+b.dataset.hide));
 
   el.querySelector('#btnConcluir').onclick = () => finalizar(false);
   el.querySelector('#btnCardio').onclick = () => finalizar(true);
@@ -156,14 +182,123 @@ function bind(el) {
     back();
   };
 
+  // Na montagem só sincronizamos o visual — o retorno é descartado de
+  // propósito, senão voltar de outra tela dispararia o desligamento de novo.
   sessao.exercicios.forEach((_, i) => markExerciseDone(i));
 }
 
+/**
+ * Sincroniza o visual do exercício com o estado das séries.
+ * Devolve true quando ele ACABOU de fechar todas — o gatilho do desligamento.
+ */
 function markExerciseDone(i) {
   const card = document.querySelector('.exercise-card[data-ex="' + i + '"]');
-  if (!card) return;
   const ex = sessao.exercicios[i];
-  card.classList.toggle('all-done', ex.sets.every(s => s.done));
+  if (!card || !ex) return false;
+
+  const completo = ex.sets.length > 0 && ex.sets.every(s => s.done);
+  const antes = card.classList.contains('all-done');
+  card.classList.toggle('all-done', completo);
+  pintarStub(i);
+
+  // Desmarcar uma série reabre o exercício: não dá para editar o que está oculto.
+  if (!completo && ex.collapsed) { ex.collapsed = false; card.classList.remove('collapsed'); }
+
+  return completo && !antes;
+}
+
+/** Resumo que fica na barra compacta: quantas séries e quanto volume. */
+function pintarStub(i) {
+  const card = document.querySelector('.exercise-card[data-ex="' + i + '"]');
+  const ex = sessao.exercicios[i];
+  if (!card || !ex) return;
+  const alvo = card.querySelector('.ex-stub-meta');
+  if (!alvo) return;
+  const feitas = ex.sets.filter(s => s.done);
+  const vol = Math.round(volumeOfSets(feitas));
+  alvo.textContent = feitas.length + ' séries' + (vol > 0 ? ' · ' + vol + ' kg' : '');
+}
+
+// ===== desligamento estilo TV de tubo =====
+//
+// Fechou todas as séries, o card não serve mais para nada e só atrapalha a
+// rolagem até o próximo exercício. Ele se apaga como uma TV CRT — colapsa numa
+// linha, estoura o brilho, some no ponto — e vira uma barra compacta. Tocar na
+// barra religa e devolve o card editável.
+
+const CRT_MS = 420;       // duração da animação, casada com o CSS
+const ALTURA_MS = 240;    // colapso/expansão da altura do card
+
+/** Sem FX ou com "menos movimento" no sistema, a troca é seca. */
+function comAnimacao() {
+  return isFxOn() && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+const esperar = ms => new Promise(r => setTimeout(r, ms));
+
+async function desligarCRT(i) {
+  const card = document.querySelector('.exercise-card[data-ex="' + i + '"]');
+  const ex = sessao && sessao.exercicios[i];
+  if (!card || !ex || ex.collapsed || card.dataset.anim) return;
+
+  ex.collapsed = true;
+  pintarStub(i);
+
+  if (!comAnimacao()) { card.classList.add('collapsed'); return; }
+
+  card.dataset.anim = '1';
+  const alto = card.offsetHeight;
+  card.style.height = alto + 'px';
+  card.classList.add('crt-anim', 'crt-off');
+  vibrate(20);
+
+  await esperar(CRT_MS);
+
+  // Troca o corpo pela barra e mede onde a altura precisa chegar.
+  card.classList.remove('crt-off');
+  card.classList.add('collapsed');
+  card.style.height = 'auto';
+  const baixo = card.offsetHeight;
+  card.style.height = alto + 'px';
+  void card.offsetHeight;                       // força o reflow antes da transição
+  card.style.transition = 'height ' + ALTURA_MS + 'ms ease';
+  card.style.height = baixo + 'px';
+
+  await esperar(ALTURA_MS + 20);
+  limpar(card);
+}
+
+async function ligarCRT(i) {
+  const card = document.querySelector('.exercise-card[data-ex="' + i + '"]');
+  const ex = sessao && sessao.exercicios[i];
+  if (!card || !ex || !ex.collapsed || card.dataset.anim) return;
+
+  ex.collapsed = false;
+
+  if (!comAnimacao()) { card.classList.remove('collapsed'); return; }
+
+  card.dataset.anim = '1';
+  const baixo = card.offsetHeight;
+  card.classList.add('crt-anim');
+  card.classList.remove('collapsed');
+  card.style.height = 'auto';
+  const alto = card.offsetHeight;
+  card.style.height = baixo + 'px';
+  void card.offsetHeight;
+  card.style.transition = 'height ' + ALTURA_MS + 'ms ease';
+  card.style.height = alto + 'px';
+  card.classList.add('crt-on');
+  vibrate(20);
+
+  await esperar(Math.max(CRT_MS, ALTURA_MS) + 20);
+  limpar(card);
+}
+
+function limpar(card) {
+  card.style.transition = '';
+  card.style.height = '';
+  card.classList.remove('crt-anim', 'crt-off', 'crt-on');
+  delete card.dataset.anim;
 }
 
 function updateProgress() {
