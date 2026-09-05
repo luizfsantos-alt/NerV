@@ -29,11 +29,6 @@ export function screenAjustes(params, el) {
       '<input type="file" class="hidden-file" id="importFile" accept="application/json,.json" />' +
     '</div>' +
 
-    '<div class="card"><h3>Zona de risco</h3>' +
-      '<div class="hint">Apaga fichas, treinos e histórico deste aparelho. Não tem como desfazer.</div>' +
-      '<button class="btn btn-danger btn-small" id="btnWipe" style="width:100%;">APAGAR TUDO</button>' +
-    '</div>' +
-
     '<div class="card"><h3>Atualização</h3>' +
       '<div class="card-sub" style="line-height:2;">' +
         'app <span id="appVer">—</span><br>' +
@@ -44,6 +39,11 @@ export function screenAjustes(params, el) {
         '<b>Suas fichas e seu histórico não são apagados</b> — só os arquivos do programa.</div>' +
       '<button class="btn btn-primary btn-small" id="btnForce" style="width:100%;">FORÇAR ATUALIZAÇÃO</button>' +
       '<button class="btn btn-secondary btn-small" id="btnUpdate" style="width:100%;margin-top:8px;">PROCURAR ATUALIZAÇÃO</button>' +
+    '</div>' +
+
+    '<div class="card"><h3>Zona de risco</h3>' +
+      '<div class="hint">Apaga fichas, treinos e histórico deste aparelho. Não tem como desfazer.</div>' +
+      '<button class="btn btn-danger btn-small" id="btnWipe" style="width:100%;">APAGAR TUDO</button>' +
     '</div>' +
 
     '<div class="card"><h3>Sobre</h3>' +
