@@ -75,11 +75,64 @@
 
 <div class="toast-wrap" id="toastWrap" aria-live="polite"></div>
 
+<!-- Painel de resgate: só aparece se o app não terminar de subir. -->
+<div class="recovery" id="recovery" hidden>
+  <div class="recovery-box">
+    <b>O NERv2 não conseguiu abrir</b>
+    <p>Provavelmente uma versão antiga ficou presa no cache deste aparelho.
+       Limpar o cache resolve — <b>suas fichas e seu histórico não são apagados</b>.</p>
+    <button class="btn btn-primary btn-small" id="recoveryFix">FORÇAR ATUALIZAÇÃO</button>
+    <button class="btn btn-ghost btn-small" id="recoveryClose">FECHAR</button>
+  </div>
+</div>
+
 <noscript>
   <div style="padding:40px 20px;text-align:center;font-family:monospace;color:#f0f0f0;">
     O NERv2 precisa de JavaScript para funcionar.
   </div>
 </noscript>
+
+<!-- Resgate de emergência. Fica no shell, em script clássico, de propósito.
+     O index.html é servido network-first pelo service worker, então este trecho
+     é sempre o mais novo que o aparelho conseguiu buscar. Ele existe justamente
+     para o caso em que os módulos de js/ ficaram presos numa versão velha ou
+     quebrada — cenário em que nada que dependa de `import` serve de socorro. -->
+<script>
+// Apaga caches e service workers. NÃO toca no localStorage: fichas, treinos e
+// histórico continuam onde estão.
+window.nervHardReset = async function nervHardReset() {
+  try {
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.unregister()));
+    }
+  } catch (e) { console.warn('[nerv] não consegui remover o service worker', e); }
+  try {
+    if (window.caches) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    }
+  } catch (e) { console.warn('[nerv] não consegui limpar o cache', e); }
+  // location.reload(true) é ignorado pelos navegadores há anos. Trocar o
+  // endereço com um parâmetro descartável é o que de fato fura o cache HTTP.
+  location.replace(location.pathname + '?nerv-reset=' + Date.now() + '#/fichas');
+};
+
+// Escotilha por endereço: abrir o app em #/reset limpa tudo antes de qualquer
+// módulo carregar. É a saída quando nem a tela de Ajustes abre.
+if (location.hash === '#/reset') window.nervHardReset();
+
+// Vigia de inicialização: o app.js marca __NERV_BOOTED__. Se em 6 s isso não
+// aconteceu, o código de tela não subiu e oferecemos a limpeza.
+setTimeout(function () {
+  if (window.__NERV_BOOTED__) return;
+  var box = document.getElementById('recovery');
+  if (!box) return;
+  box.hidden = false;
+  document.getElementById('recoveryFix').onclick = function () { window.nervHardReset(); };
+  document.getElementById('recoveryClose').onclick = function () { box.hidden = true; };
+}, 6000);
+</script>
 
 <script type="module" src="js/app.js"></script>
 </body>

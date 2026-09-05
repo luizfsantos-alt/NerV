@@ -529,6 +529,29 @@ body.rest-over:not(.fx-off)::after {
 .install-banner .txt { flex:1; font-family:var(--font-mono); font-size:11px; color:var(--gray); letter-spacing:0.08em; line-height:1.6; }
 .install-banner .txt b { color:var(--white); }
 
+/* Painel de resgate. Sobe sozinho quando os módulos de js/ não carregam, então
+   não pode depender de nada que aquele código monte. */
+.recovery {
+  position:fixed; inset:0; z-index:200; background:rgba(10,10,10,0.96);
+  display:flex; align-items:center; justify-content:center; padding:24px;
+}
+.recovery[hidden] { display:none; }
+.recovery-box {
+  max-width:380px; width:100%; background:#0a0a0a; border:2px solid var(--red);
+  padding:22px; box-shadow: 0 24px 60px -18px rgba(255,0,64,0.8);
+}
+.recovery-box b {
+  display:block; font-family:var(--font-display); font-size:22px;
+  letter-spacing:0.06em; color:var(--white); margin-bottom:10px;
+}
+.recovery-box p {
+  font-family:var(--font-mono); font-size:12px; line-height:1.8; color:var(--gray);
+  margin:0 0 16px;
+}
+.recovery-box p b { display:inline; font-family:inherit; font-size:inherit; color:var(--white); letter-spacing:inherit; }
+.recovery-box .btn { width:100%; }
+.recovery-box .btn + .btn { margin-top:8px; }
+
 .vignette {
   position:fixed; inset:0; pointer-events:none; z-index:4;
   background: radial-gradient(circle, transparent 50%, rgba(255,0,64,0.2) 100%);
