@@ -4,7 +4,7 @@
 // uma academia no subsolo, sem sinal — então nada aqui pode depender da rede.
 // A rede só é consultada para descobrir versões novas, em segundo plano.
 
-const VERSION = 'nerv2-v2.0.1';
+const VERSION = 'nerv2-v2.0.2';
 const CACHE = VERSION;
 
 // Tudo o que o app precisa para abrir do zero, offline.
