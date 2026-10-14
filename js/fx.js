@@ -136,7 +136,7 @@ export function read(el, text, animate = true) {
   (function step(t) {
     let live = false;
     for (const o of spans) {
-      if (t - t0 < o.end) { live = true; o.s.textContent = (Math.random() * 10) | 0; o.s.style.color = 'var(--osso)'; }
+      if (t - t0 < o.end) { live = true; o.s.textContent = (Math.random() * 10) | 0; o.s.style.color = 'var(--corante)'; }
       else { o.s.textContent = o.ch; o.s.style.color = ''; }
     }
     if (live && el.isConnected) requestAnimationFrame(step); else el.textContent = text;

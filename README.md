@@ -5,7 +5,7 @@ Diário de treino e cardio para levar para a academia. PWA instalável,
 nenhuma dependência externa em tempo de execução.
 
 <p align="center">
-  <img src="assets/icon-192-v4.png" alt="NerV" width="96" height="96">
+  <img src="assets/icon-192-v5.png" alt="NerV" width="96" height="96">
 </p>
 
 O cenário que dita todas as decisões deste repositório é concreto: uma academia
@@ -80,7 +80,7 @@ duas, e uma faísca desce até a próxima série, que fica acesa pulsando.
   digitar duas vezes o que já está escrito.
 - **A tela não apaga** durante o treino (Wake Lock, onde o navegador suporta).
 - **Exercício concluído encista**: o card contrai numa fenda, a fenda brilha em
-  osso e sela numa cápsula com o nome, as séries fechadas e o volume. Toque na
+  violeta e sela numa cápsula com o nome, as séries fechadas e o volume. Toque na
   cápsula para reabrir; o botão `ENCISTAR` guarda de novo.
 - **Sair com séries não salvas pede confirmação**, inclusive pelo botão físico
   de voltar do Android.
@@ -363,8 +363,8 @@ publicar uma mudança:
 2. **Arquivo novo em `js/` ou `assets/`?** Acrescente ao `PRECACHE` do `sw.js`,
    senão ele não fica disponível offline.
 
-   **Ícone novo?** Troque também o **nome** dos arquivos (o sufixo `-v4` vira
-   `-v5`) no manifesto, no `index.html` e no `sw.js`. O Android só atualiza o
+   **Ícone novo?** Troque também o **nome** dos arquivos (o sufixo `-v5` vira
+   `-v6`) no manifesto, no `index.html` e no `sw.js`. O Android só atualiza o
    ícone do app instalado quando o endereço no manifesto muda; trocar só a
    imagem mantém o ícone antigo na tela inicial.
 

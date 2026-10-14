@@ -5,7 +5,8 @@ Referência visual e de movimento: [`maquete.html`](maquete.html).
 ## Decidido
 
 - **Nome:** NerV (sem NERv2 / NERV3).
-- **Direção:** Espécime em Metabolismo. Paleta D3 (Medula), fontes Anybody e Martian Mono.
+- **Direção:** Espécime em Metabolismo. Fontes Anybody e Martian Mono. A paleta nasceu D3 (Medula, cor de osso); desde a 3.1 a cor de destaque é o **violeta de contraste**, o corante da lâmina, e as imagens de célula passam por esse filtro.
+- **Botões principais:** o mesmo tecido de células do fundo do app, em violeta claro (antes, osso esponjoso).
 - **Elemento de marca:** ~~ósteon~~ (não funcionou como ícone). A série é uma **célula que se divide** ao ser fechada; a Mutação mostra os cromossomos se alinhando antes da divisão.
 - **Mascote:** a bomba sai e não volta.
 - **Descanso:** começa só quando o usuário pede (botão), como o código já faz. O README será corrigido.
