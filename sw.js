@@ -1,4 +1,4 @@
-// Service worker do NERv2.
+// Service worker do NerV.
 //
 // Duas exigências que puxam para lados opostos:
 //
@@ -20,7 +20,8 @@
 // seguem cache-first: são grandes, mudam junto com a versão e não vale gastar
 // rede com elas.
 
-const VERSION = 'nerv2-v2.2.0';
+// O prefixo 'nerv2-' fica: é com ele que a limpeza reconhece os caches antigos.
+const VERSION = 'nerv2-v3.0.0';
 const CACHE = VERSION;
 
 // Rede lenta não pode segurar a abertura do app. Passou disto, o cache assume.
@@ -44,6 +45,8 @@ const PRECACHE = [
   './js/importers.js',
   './js/modelos.js',
   './js/xlsx-lite.js',
+  './js/cells.js',
+  './js/veins.js',
   './js/screens/fichas.js',
   './js/screens/treinos.js',
   './js/screens/workout.js',
@@ -51,16 +54,23 @@ const PRECACHE = [
   './js/screens/historico.js',
   './js/screens/stats.js',
   './js/screens/ajustes.js',
-  './assets/logo.jpg',
-  './assets/mascot.jpg',
-  './assets/mascot-head.jpg',
   './assets/icon-192.png',
   './assets/icon-512.png',
   './assets/icon-maskable-512.png',
   './assets/apple-touch-icon.png',
-  './assets/fonts/anton-400-latin.woff2',
-  './assets/fonts/orbitron-var-latin.woff2',
-  './assets/fonts/share-tech-mono-400-latin.woff2',
+  './assets/fonts/anybody-var-latin.woff2',
+  './assets/fonts/martian-mono-var-latin.woff2',
+  './assets/tex/membrana.webp',
+  './assets/tex/fibra.webp',
+  './assets/tex/veias.webp',
+  './assets/tex/osso.webp',
+  './assets/tex/grao.webp',
+  './assets/tex/cel-repouso.webp',
+  './assets/tex/cel-mitose.webp',
+  './assets/tex/celula.webp',
+  './assets/tex/mitose.webp',
+  './assets/tex/cromossomos.webp',
+  './assets/tex/nucleo.webp',
 ];
 
 self.addEventListener('install', event => {

@@ -1,9 +1,10 @@
 // Entrada do app: registra rotas, liga os efeitos e cuida do ciclo do PWA.
 
 import { seedIfEmpty, removerFichaExemplo } from './state.js';
-import { setupFX, setupAmbient } from './fx.js';
+import { setupFX, setupHeart, scan, setRhythm, firstBeat, ambient } from './fx.js';
 import { setupAudioPriming, toast } from './ui.js';
-import { route, startRouter, go, render } from './router.js';
+import { route, startRouter, go, render, onRender } from './router.js';
+import { isResting } from './timers.js';
 import { screenFichas } from './screens/fichas.js';
 import { screenTreinos } from './screens/treinos.js';
 import { screenWorkout } from './screens/workout.js';
@@ -15,7 +16,7 @@ import { setBeforeLeave } from './router.js';
 
 // Anda junto com o VERSION do sw.js. A tela de Ajustes mostra os dois lado a
 // lado justamente para denunciar quando o service worker fica para trás.
-export const VERSION = '2.2.0';
+export const VERSION = '3.0.0';
 window.__NERV_VERSION__ = VERSION;
 
 // O resgate de emergência do index.html recarrega com ?nerv-reset=... para
@@ -37,10 +38,36 @@ route('ajustes', (p, el) => { setBeforeLeave(null); screenAjustes(p, el); });
 removerFichaExemplo();
 seedIfEmpty();
 setupFX();
-setupAmbient();
+setupHeart();
 setupAudioPriming();
 
-document.getElementById('logo').onclick = () => go('/fichas');
+// O topo diz onde você está e como o organismo está; a tela entra varrendo.
+const ONDE = {
+  fichas: 'Lâminas', ficha: 'Lâmina', treino: 'Amostra', cardio: 'Cardio',
+  historico: 'Arquivo', stats: 'Leitura', ajustes: 'Ajustes',
+};
+let primeira = true;
+onRender((name, screen) => {
+  document.getElementById('roWhere').textContent = ONDE[name] || 'Lâminas';
+  // Treino e cardio ditam o próprio ritmo; o descanso, quando corre, também.
+  if (name !== 'treino' && name !== 'cardio' && !isResting()) {
+    setRhythm(52, name === 'stats' || name === 'historico' ? 'Histórico em leitura' : 'Organismo em repouso');
+  }
+  if (primeira) { primeira = false; abertura(); }
+  scan(screen);
+});
+
+/** Abertura (C): uma vez por carregamento, a membrana acende e a marca estica. */
+function abertura() {
+  if (!ambient()) return;
+  document.querySelector('.membrane').animate([{ opacity: 0 }, { opacity: .6 }], { duration: 600, easing: 'cubic-bezier(.7,0,.2,1)' });
+  document.getElementById('logo').animate([{ fontStretch: '50%', opacity: 0 }, { fontStretch: '125%', opacity: 1 }], { duration: 600, easing: 'cubic-bezier(.7,0,.2,1)' });
+  firstBeat();
+}
+
+const logo = document.getElementById('logo');
+logo.onclick = () => go('/fichas');
+logo.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go('/fichas'); } };
 document.getElementById('btnAjustes').onclick = () => go('/ajustes');
 
 // Botões da barra de descanso (fica fora das telas, sempre montada).
@@ -149,7 +176,7 @@ document.getElementById('btnInstallNo').onclick = () => {
 
 window.addEventListener('appinstalled', () => {
   banner.classList.remove('active');
-  toast('NERv2 instalado', 'ok');
+  toast('NerV instalado', 'ok');
 });
 
 // Avisa quando a conexão cai — e que isso não muda nada.

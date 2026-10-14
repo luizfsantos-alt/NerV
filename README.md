@@ -1,11 +1,11 @@
-# NERv2 — Neural Engine Routine
+# NerV — Neural Engine Routine
 
 Diário de treino e cardio para levar para a academia. PWA instalável,
 **funciona 100% offline**, sem back-end, sem conta, sem telemetria e sem
 nenhuma dependência externa em tempo de execução.
 
 <p align="center">
-  <img src="assets/icon-192.png" alt="NERv2" width="96" height="96">
+  <img src="assets/icon-192.png" alt="NerV" width="96" height="96">
 </p>
 
 O cenário que dita todas as decisões deste repositório é concreto: uma academia
@@ -65,20 +65,23 @@ vai zerada de propósito: é o que você registra treinando, e a partir da segun
 sessão o app sugere sozinho. Quem já usa o app pode criá-la de novo em
 **Nova Ficha → Começar com → Modelo ABCD**.
 
-**Execução.** Cronômetro da sessão, uma linha por série com carga e reps, e um
-checkbox para fechar a série. Marcar a série já dispara o descanso — é o gesto
-que a pessoa faria de qualquer jeito.
+**Execução.** Cronômetro da sessão, termômetro de volume, uma linha por série
+com carga e reps, e uma célula para fechar a série: tocar divide a célula em
+duas, e uma faísca desce até a próxima série, que fica acesa pulsando.
 
-- **Descanso** numa barra fixa no rodapé, visível de qualquer ponto da tela,
-  com som, vibração, `+30s` e `PULAR`. Estourou o tempo, a barra conta o atraso
-  para cima e pulsa em vermelho cada vez mais rápido até você voltar.
+- **Descanso** só começa quando você pede, no botão do card: fechar a série
+  não dispara nada. Ele aparece numa barra fixa no rodapé, visível de qualquer
+  ponto da tela, com um eletro correndo no ritmo do coração, `+30s` e `PULAR`.
+  Estourou o tempo, um único som (lub-dub), a barra conta o atraso para cima e
+  as veias crescem das bordas da tela, pulsando cada vez mais rápido. Depois
+  disso a cobrança é **só vibração**, para não brigar com a música de quem
+  treina.
 - **Reps em branco assumem o alvo da ficha** ao fechar a série. Ninguém quer
   digitar duas vezes o que já está escrito.
 - **A tela não apaga** durante o treino (Wake Lock, onde o navegador suporta).
-- **Exercício concluído se desliga** como uma TV de tubo — colapsa numa linha,
-  estoura o brilho, some — e vira uma barra compacta com o nome, as séries
-  fechadas e o volume. Toque na barra para reabrir; o botão `OCULTAR EXERCÍCIO`
-  guarda de novo. Desmarcar uma série reabre sozinho.
+- **Exercício concluído encista**: o card contrai numa fenda, a fenda brilha em
+  osso e sela numa cápsula com o nome, as séries fechadas e o volume. Toque na
+  cápsula para reabrir; o botão `ENCISTAR` guarda de novo.
 - **Sair com séries não salvas pede confirmação**, inclusive pelo botão físico
   de voltar do Android.
 
@@ -88,9 +91,11 @@ você fechou todas as séries no topo da faixa de reps, o alvo sobe um increment
 arredondado para anilha (`+2,5 kg` ou `+2,5%`, o que for maior) e o card mostra
 `+CARGA`.
 
-**Recordes de verdade.** O `+1 SINGULARITY` só dispara quando você bate um PR
-real, comparado com o histórico **anterior** à sessão — por carga absoluta ou
-por 1RM estimado (fórmula de Epley).
+**Recordes de verdade.** Ao concluir, a célula se divide na tela (`+1`). Só
+quando você bate um PR real, comparado com o histórico **anterior** à sessão —
+por carga absoluta ou por 1RM estimado (fórmula de Epley) —, vem a
+**Mutação**: a tela esquenta até o branco, os recordes aparecem e soa um
+acorde curto. É o único outro som do app.
 
 **Cardio com GPS.** Distância e pace por `watchPosition`, com descarte de
 leituras ruins. Sem sinal ou na esteira, você informa a distância no fim e a
@@ -174,7 +179,7 @@ Tudo fica em `localStorage`, só no aparelho. Três chaves:
 |---|---|
 | `nerv2_data_v1` | o estado atual (fichas, histórico de treino, histórico de cardio) |
 | `nerv2_data_backup` | a última versão íntegra, promovida a cada gravação |
-| `nerv2_fx` | preferência do botão FX |
+| `nerv2_fx` | preferência do botão SEDAR (desliga os efeitos de ambiente) |
 
 Toda leitura valida o formato e cai para o backup se o principal estiver
 corrompido, então uma gravação ruim nunca fica sendo a única cópia. Toda
@@ -183,7 +188,7 @@ abrindo.
 
 ### Backup
 
-`Ajustes → EXPORTAR BACKUP` gera um `nerv2-backup-AAAA-MM-DD.json`:
+`Ajustes → EXPORTAR BACKUP` gera um `nerv-backup-AAAA-MM-DD.json`:
 
 ```json
 {
@@ -262,7 +267,9 @@ js/
   state.js              persistência, migração de schema, backup
   progress.js           última sessão, PRs, 1RM, sugestão de carga
   timers.js             cronômetros por timestamp, descanso, Wake Lock
-  fx.js                 canvas ambiente, som, vibração, singularity
+  fx.js                 coração (--beat), varredura, leitura, som, Mutação
+  cells.js              células de série: imagens, pose por semente, divisão
+  veins.js              veias que crescem quando o descanso estoura
   ui.js                 modais, toasts, ícones (substituem alert/confirm/prompt)
   importers.js          parsers de texto, CSV e planilha
   modelos.js            ficha ABCD pronta (semente e modelo do "Nova Ficha")
@@ -276,7 +283,12 @@ js/
     historico.js        sessões gravadas
     stats.js            números, gráfico de 8 semanas, recordes
     ajustes.js          backup, atualização, zona de risco
-assets/                 logo, mascote, ícones PWA e fontes .woff2
+assets/
+  tex/                  texturas e células (WebP), geradas a partir de
+                        docs/redesign/texturas/fontes por processar.py
+  fonts/                Anybody e Martian Mono, variáveis, .woff2
+  icon-*.png            ícones do PWA (a mitose)
+docs/redesign/          maquete de referência, decisões e texturas
 ```
 
 Cada tela é uma função `screenX(params, el)` que recebe o elemento raiz e o
@@ -311,10 +323,15 @@ thread, são feios no PWA instalado e no iOS quebram a identidade visual.
 pré-preenchia toda série com a carga máxima histórica — ou seja, mandava você
 repetir seu PR em todas as séries de todo treino.
 
-**Os efeitos param quando não são vistos.** O canvas ambiente para o loop
-quando o FX está desligado ou o app vai para segundo plano; antes rodava a
-60 fps à toa, drenando bateria durante uma hora de treino. Tudo respeita
-`prefers-reduced-motion`.
+**Um coração só.** Um único `requestAnimationFrame` escreve `--beat` no
+`<html>`, e tudo o que respira lê essa variável no CSS. O laço para quando o
+app vai para segundo plano, quando você seda o organismo (`SEDAR`) ou quando
+não há nada pulsando. Com `prefers-reduced-motion`, o ambiente para e o
+feedback fica; nenhum estado depende só de cor ou de movimento.
+
+**Texturas como imagem, não como filtro.** Grão, membrana e fibras são WebP
+pequenos em repetição: um filtro SVG equivalente custaria processamento a cada
+quadro.
 
 ---
 

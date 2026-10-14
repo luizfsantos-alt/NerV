@@ -7,6 +7,7 @@
 const routes = new Map();
 let current = null;
 let beforeLeave = null;
+let afterRender = null;
 
 /** Registra uma tela: nome -> função(params) que devolve/monta o HTML. */
 export function route(name, handler) { routes.set(name, handler); }
@@ -16,6 +17,9 @@ export function route(name, handler) { routes.set(name, handler); }
  * O handler recebe o destino e devolve true para liberar, ou uma Promise<boolean>.
  */
 export function setBeforeLeave(fn) { beforeLeave = fn; }
+
+/** Chamado depois de cada tela montada (varredura, leitura do topo). */
+export function onRender(fn) { afterRender = fn; }
 
 export function currentRoute() { return current; }
 
@@ -68,6 +72,7 @@ export async function render() {
     current = { name, params };
     await handler(params, screen);
     main.scrollTop = 0;
+    afterRender && afterRender(name, screen);
   } finally {
     rendering = false;
   }

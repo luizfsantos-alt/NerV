@@ -15,33 +15,39 @@ export function screenTreinos(params, el) {
   const ficha = findFicha(params.id);
   if (!ficha) { go('/fichas', { replace: true }); return; }
 
-  let html = '<div class="back" id="back">' + ICON.back + 'Fichas</div>';
+  let html = '<div class="back" id="back" role="link" tabindex="0">' + ICON.back + 'Fichas</div>';
   html += '<h2>' + escapeHtml(ficha.nome) + '</h2>';
-  html += '<button class="btn btn-primary" id="btnNovo">' + ICON.plus + 'Novo Treino</button>';
-  html += '<button class="btn btn-secondary" id="btnUpload">' + ICON.import + 'Importar Excel / CSV</button>';
+  html += '<div class="lbl screen-sub">' + ficha.treinos.length + ' amostra' + (ficha.treinos.length === 1 ? '' : 's') + '</div>';
+  html += '<button class="btn btn-primary" id="btnNovo" type="button">' + ICON.plus + 'Novo treino</button>';
+  html += '<button class="btn" id="btnUpload" type="button">' + ICON.import + 'Importar Excel / CSV</button>';
   html += '<input type="file" class="hidden-file" id="fileInput" accept=".xlsx,.csv,.tsv,text/csv" />';
 
   if (!ficha.treinos.length) {
-    html += '<div class="empty">Nenhum treino nesta ficha.<br>Crie um ou importe de uma planilha.</div>';
+    html += '<div class="empty">Nenhuma amostra nesta lâmina.<br>Crie um treino ou importe de uma planilha.</div>';
   } else {
-    ficha.treinos.forEach(t => {
+    ficha.treinos.forEach((t, i) => {
       const series = t.exercicios.reduce((a, e) => a + (e.series || 0), 0);
       html += '<div class="card">';
-      html += '<div class="edit-btn" data-edit="' + t.id + '" title="Editar">' + ICON.edit + '</div>';
-      html += '<div class="delete-btn" data-del="' + t.id + '" title="Excluir">X</div>';
+      html += '<div class="card-actions">' +
+        '<button class="icon-act" type="button" data-edit="' + t.id + '" title="Editar" aria-label="Editar ' + escapeHtml(t.nome) + '">' + ICON.edit + '</button>' +
+        '<button class="icon-act del" type="button" data-del="' + t.id + '" title="Excluir" aria-label="Excluir ' + escapeHtml(t.nome) + '">' + ICON.trash + '</button>' +
+      '</div>';
+      html += '<div class="card-tag">Amostra ' + String(i + 1).padStart(2, '0') + '</div>';
       html += '<div class="card-title">' + escapeHtml(t.nome) + '</div>';
-      html += '<div class="card-sub">' + t.exercicios.length + ' exercício(s) · ' + series + ' séries</div>';
-      html += '<div style="margin-top:8px;color:var(--gray);font-family:var(--font-mono);font-size:11px;line-height:1.7;">' +
-        t.exercicios.slice(0, 4).map(e => escapeHtml(e.nome) + ' <span style="color:var(--muted)">' + e.series + '×' + escapeHtml(e.reps) + '</span>').join('<br>') +
-        (t.exercicios.length > 4 ? '<br><span style="color:var(--muted)">+' + (t.exercicios.length - 4) + ' …</span>' : '') +
+      html += '<div class="card-sub">' + t.exercicios.length + ' exercícios · ' + series + ' séries</div>';
+      html += '<div class="ex-preview">' +
+        t.exercicios.slice(0, 4).map(e => escapeHtml(e.nome) + ' <span>' + e.series + '×' + escapeHtml(e.reps) + '</span>').join('<br>') +
+        (t.exercicios.length > 4 ? '<br><span>+' + (t.exercicios.length - 4) + ' …</span>' : '') +
         '</div>';
-      html += '<button class="btn btn-primary btn-small iniciar" data-id="' + t.id + '" style="margin-top:12px;">' + ICON.start + 'INICIAR</button>';
+      html += '<button class="btn btn-primary btn-small iniciar" type="button" data-id="' + t.id + '" style="width:100%;margin-top:12px;">' + ICON.start + 'Iniciar</button>';
       html += '</div>';
     });
   }
   el.innerHTML = html;
 
-  el.querySelector('#back').onclick = back;
+  const voltar = el.querySelector('#back');
+  voltar.onclick = back;
+  voltar.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); back(); } };
   el.querySelector('#btnNovo').onclick = () => editarTreino(ficha, null);
   el.querySelector('#btnUpload').onclick = () => el.querySelector('#fileInput').click();
   el.querySelector('#fileInput').onchange = e => handleUpload(e, ficha);
@@ -56,7 +62,7 @@ export function screenTreinos(params, el) {
     e.stopPropagation();
     const t = ficha.treinos.find(x => x.id === b.dataset.del);
     if (!t) return;
-    if (!await confirmDialog('Excluir treino?', '"' + t.nome + '" será removido da ficha.', 'EXCLUIR')) return;
+    if (!await confirmDialog('Excluir treino?', '"' + t.nome + '" será removido da ficha.', 'Excluir')) return;
     ficha.treinos = ficha.treinos.filter(x => x.id !== b.dataset.del);
     saveState();
     render();
@@ -72,7 +78,7 @@ function exRow(ex = {}) {
     '<input class="ex-reps" placeholder="8-12" value="' + escapeHtml(ex.reps ?? '') + '" />' +
     '<input class="ex-carga" type="number" inputmode="decimal" step="any" placeholder="kg" value="' + (ex.carga || '') + '" />' +
     '<input class="ex-int" type="number" inputmode="numeric" placeholder="90" value="' + (ex.intervalo ?? '') + '" />' +
-    '<button class="mini-del" type="button" title="Remover">X</button>' +
+    '<button class="mini-del" type="button" title="Remover" aria-label="Remover exercício">' + ICON.trash + '</button>' +
   '</div>';
 }
 
@@ -90,9 +96,9 @@ async function editarTreino(ficha, treino) {
       '<label style="margin-top:6px;">Exercícios</label>' +
       '<div class="ex-edit-head"><span>Nome</span><span>Sér</span><span>Reps</span><span>Carga</span><span>Desc</span><span></span></div>' +
       '<div id="exList">' + (base.exercicios.length ? base.exercicios.map(exRow).join('') : exRow()) + '</div>' +
-      '<button class="btn btn-secondary btn-small" type="button" id="btnAddEx" style="width:100%;margin:6px 0 14px;">' + ICON.plus + 'Adicionar exercício</button>',
+      '<button class="btn btn-ghost btn-small" type="button" id="btnAddEx" style="width:100%;margin:6px 0 14px;">' + ICON.plus + 'Adicionar exercício</button>',
     buttons: [
-      { label: isNew ? 'CRIAR' : 'SALVAR', cls: 'btn-primary', value: 'ok', onClick(ov) {
+      { label: isNew ? 'Criar' : 'Salvar', cls: 'btn-primary', value: 'ok', onClick(ov) {
         const nome = ov.querySelector('#inpNome').value.trim();
         if (!nome) { modalError('Digite um nome para o treino'); return false; }
         const exercicios = [...ov.querySelectorAll('.ex-edit-row')].map(r => ({
@@ -105,7 +111,7 @@ async function editarTreino(ficha, treino) {
         if (!exercicios.length) { modalError('Adicione pelo menos um exercício'); return false; }
         resultado = { nome, exercicios };
       } },
-      { label: 'CANCELAR', cls: 'btn-ghost', value: null },
+      { label: 'Cancelar', cls: 'btn-secondary', value: null },
     ],
     onMount(ov) {
       const list = ov.querySelector('#exList');

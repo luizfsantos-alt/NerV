@@ -10,7 +10,7 @@ import { state, saveState } from '../state.js';
 import { fmtTime, uid, num } from '../util.js';
 import { ICON, promptValue, confirmDialog, toast } from '../ui.js';
 import { Stopwatch, keepScreenOn } from '../timers.js';
-import { singularity, vibrate } from '../fx.js';
+import { mutation, vibrate, setRhythm } from '../fx.js';
 import { go, back, setBeforeLeave } from '../router.js';
 
 let watch = null;
@@ -18,8 +18,8 @@ let geo = { id: null, dist: 0, last: null, acc: null, erro: null };
 
 export function screenCardio(params, el) {
   el.innerHTML =
-    '<div class="back" id="back">' + ICON.back + 'Voltar</div>' +
-    '<h2>CARDIO</h2>' +
+    '<div class="back" id="back" role="link" tabindex="0">' + ICON.back + 'Voltar</div>' +
+    '<h2>Cardio</h2>' +
     '<div class="timer" id="cardioTimer">00:00</div>' +
     '<div class="timer-sub" id="cardioSub">pronto</div>' +
     '<div class="stat-grid" style="margin:18px 0;">' +
@@ -27,13 +27,16 @@ export function screenCardio(params, el) {
       '<div class="stat-card"><div class="stat-value" id="cPace">--:--</div><div class="stat-label">pace /km</div></div>' +
     '</div>' +
     '<div class="hint" id="gpsHint">O GPS mede a distância sozinho. Sem sinal ou na esteira, você informa a distância no fim.</div>' +
-    '<button class="btn btn-primary" id="btnStart">' + ICON.start + 'INICIAR</button>' +
-    '<button class="btn btn-secondary" id="btnGps" style="display:none;">' + ICON.gps + 'USAR GPS</button>' +
-    '<button class="btn btn-secondary" id="btnStop" style="display:none;">FINALIZAR</button>';
+    '<button class="btn btn-primary" id="btnStart" type="button">' + ICON.start + 'Iniciar</button>' +
+    '<button class="btn" id="btnGps" type="button" style="display:none;">' + ICON.gps + 'Usar GPS</button>' +
+    '<button class="btn" id="btnStop" type="button" style="display:none;">Finalizar</button>';
 
   reset();
 
-  el.querySelector('#back').onclick = back;
+  const voltar = el.querySelector('#back');
+  voltar.onclick = back;
+  voltar.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); back(); } };
+  setRhythm(52, 'Organismo em repouso');
   el.querySelector('#btnStart').onclick = () => iniciar(el);
   el.querySelector('#btnGps').onclick = () => toggleGps(el);
   el.querySelector('#btnStop').onclick = () => finalizar(el);
@@ -41,7 +44,7 @@ export function screenCardio(params, el) {
   // Sair da tela nunca deve pedir distância; só confirma se há corrida em curso.
   setBeforeLeave(async () => {
     if (!watch || !watch.running) { limpar(); return true; }
-    const ok = await confirmDialog('Sair do cardio?', 'O tempo em andamento será descartado.', 'SAIR');
+    const ok = await confirmDialog('Sair do cardio?', 'O tempo em andamento será descartado.', 'Sair');
     if (ok) limpar();
     else history.replaceState(null, '', '#/cardio');
     return ok;
@@ -65,6 +68,7 @@ function iniciar(el) {
   el.querySelector('#btnStop').style.display = 'flex';
   el.querySelector('#btnGps').style.display = 'flex';
   el.querySelector('#cardioSub').textContent = 'correndo';
+  setRhythm(120, 'Cardio');
   vibrate(50);
 }
 
@@ -74,13 +78,13 @@ function toggleGps(el) {
   if (!('geolocation' in navigator)) { toast('Este aparelho não expõe GPS ao navegador.'); return; }
 
   const btn = el.querySelector('#btnGps');
-  btn.textContent = 'BUSCANDO SINAL…';
+  btn.textContent = 'Buscando sinal…';
 
   geo.id = navigator.geolocation.watchPosition(
     pos => {
       geo.erro = null;
       geo.acc = pos.coords.accuracy;
-      btn.innerHTML = ICON.gps + 'GPS ATIVO · ±' + Math.round(geo.acc) + 'm';
+      btn.innerHTML = ICON.gps + 'GPS ativo · ±' + Math.round(geo.acc) + 'm';
       const p = { lat: pos.coords.latitude, lon: pos.coords.longitude };
       if (geo.last) {
         const d = haversine(geo.last, p);
@@ -94,7 +98,7 @@ function toggleGps(el) {
     },
     err => {
       geo.erro = err.message;
-      btn.innerHTML = ICON.gps + 'GPS INDISPONÍVEL';
+      btn.innerHTML = ICON.gps + 'GPS indisponível';
       document.getElementById('gpsHint').textContent =
         'GPS não autorizado ou sem sinal. Você poderá informar a distância no fim.';
     },
@@ -106,7 +110,7 @@ function pararGps(el) {
   if (geo.id != null) navigator.geolocation.clearWatch(geo.id);
   geo.id = null;
   const btn = el && el.querySelector('#btnGps');
-  if (btn) btn.innerHTML = ICON.gps + 'USAR GPS';
+  if (btn) btn.innerHTML = ICON.gps + 'Usar GPS';
 }
 
 /** Distância entre dois pontos em km. */
@@ -161,7 +165,7 @@ async function finalizar(el) {
       type: 'number',
       placeholder: '5.0',
       hint: 'Tempo registrado: ' + fmtTime(segundos) + '. Deixe em branco para salvar só o tempo.',
-      okLabel: 'SALVAR',
+      okLabel: 'Salvar',
     });
     if (v === null) {   // cancelou o modal — não salva nada e continua na tela
       el.querySelector('#btnStop').style.display = 'none';
@@ -186,7 +190,7 @@ async function finalizar(el) {
   });
   saveState();
 
-  mostrarPace(km, segundos, pace, () => { limpar(); singularity([], () => go('/fichas', { replace: true })); });
+  mostrarPace(km, segundos, pace, () => { limpar(); mutation([], () => go('/fichas', { replace: true })); });
 }
 
 function mostrarPace(km, segundos, pace, cb) {

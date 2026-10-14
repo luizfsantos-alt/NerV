@@ -5,7 +5,8 @@
 // timers e a contagem atrasa minutos. Aqui o tempo real vem sempre de
 // Date.now(); o intervalo só redesenha a tela.
 
-import { beep, vibrate, flash } from './fx.js';
+import { sound, vibrate, motionOK, setRhythm, rhythm, setUrgent, setEcg } from './fx.js';
+import { growVeins, clearVeins } from './veins.js';
 
 // ===== cronômetro de sessão =====
 export class Stopwatch {
@@ -38,87 +39,68 @@ export class Stopwatch {
   reset() { this.stop(); this.accum = 0; }
 }
 
-// ===== timer de descanso =====
+// ===== timer de descanso (07 Taquicardia) =====
 // Um só por vez, com alvo em timestamp — sobrevive à tela apagada.
 //
-// Estourar o tempo não é conquista: cada segundo a mais é corpo mole. Por isso
-// não existe estado "descanso completo" em verde — ao zerar, a barra passa a
-// contar o atraso para cima, pulsa em vermelho cada vez mais rápido e cutuca de
-// tempos em tempos até você voltar para a série.
+// O descanso é um eletro correndo na velocidade do coração. Nos últimos 5 s o
+// ritmo sobe. No zero, um único som (lub-dub), e a barra vira hemorragia: as
+// veias crescem das bordas e pulsam cada vez mais rápido. Depois disso a
+// cobrança é só vibração, para não brigar com a música de quem treina.
 let restEndsAt = null;
 let restTotal = 0;
 let restHandle = null;
 let restLabel = '';
 let restDoneFired = false;
 let restNextNag = 0;   // segundo de atraso em que cutucamos de novo
-let restPulse = '';    // duração de pulsação já aplicada no CSS
+let rhythmBefore = null;
 
-const NAG_EVERY = 15;  // s entre cutucadas
+const NAG_EVERY = 15;  // s entre cutucadas (vibração)
 const NAG_UNTIL = 180; // s de atraso: passando disso, só o visual insiste
 const GIVE_UP = 300;   // s de atraso: descanso abandonado, a barra sai da tela
 
-const bar = () => document.getElementById('restBar');
+const $ = id => document.getElementById(id);
+const mmss = s => String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
 
-const mmss = s => (s < 60
-  ? String(s).padStart(2, '0')
-  : Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'));
-
-// A cobrança sobe junto com o atraso. Frases curtas: a barra é uma linha só.
-function overMessage(over) {
-  if (over < 15) return 'volta pra série';
-  if (over < 45) return 'corpo mole · volta';
-  return 'levanta · agora';
-}
-
-function setText(node, txt) { if (node.textContent !== txt) node.textContent = txt; }
+function setText(node, txt) { if (node && node.textContent !== txt) node.textContent = txt; }
 
 function paintRest() {
-  const el = bar();
-  if (!el) return;
-  const left = Math.round((restEndsAt - Date.now()) / 1000);
-  const count = el.querySelector('.rest-count');
-  const text = el.querySelector('.rest-text');
-  const fill = el.querySelector('.rest-progress > i');
-  const skip = document.getElementById('restSkip');
+  const el = $('restBar');
+  if (!el || !restEndsAt) return;
+  const left = Math.ceil((restEndsAt - Date.now()) / 1000);
 
   if (left > 0) {
-    setText(count, mmss(left));
-    setText(text, restLabel);
-    fill.style.width = (100 - (left / restTotal) * 100).toFixed(1) + '%';
-    if (el.classList.contains('over')) clearOverState(el, skip);
+    setText($('restCount'), mmss(left));
+    $('restLeft').style.transform = 'scaleX(' + Math.max(0, Math.min(1, left / restTotal)).toFixed(3) + ')';
+    if (el.classList.contains('over')) clearOverState();
+    if (left <= 5) setRhythm(88 + (6 - left) * 6, 'Descanso acabando');
+    else setRhythm(88, 'Descanso');
     return;
   }
 
   const over = -left;
-  setText(count, '+' + mmss(over));
-  setText(text, overMessage(over));
-  fill.style.width = '100%';
-  el.classList.add('over');
-  document.body.classList.add('rest-over');
-  if (skip) {
-    setText(skip, 'VOLTAR');
-    skip.title = 'Encerrar o descanso e voltar para a série';
-  }
-
-  // Quanto maior o atraso, mais rápida a pulsação (1.10s → 0.45s em 1 minuto).
-  const dur = (1.1 - Math.min(over, 60) / 60 * 0.65).toFixed(2) + 's';
-  // Vai no <body> para valer também no pulso da tela inteira (CSS).
-  if (dur !== restPulse) { restPulse = dur; document.body.style.setProperty('--rest-pulse', dur); }
+  setText($('restCount'), '+' + mmss(over));
+  setRhythm(Math.min(180, 124 + over * 2.2), 'Taquicardia');
 
   if (!restDoneFired) {
     restDoneFired = true;
     restNextNag = NAG_EVERY;
-    // Sinal triplo: som, vibração e flash — para funcionar com o celular
-    // no bolso, na mão ou no chão.
-    beep(3, 980);
-    vibrate([200, 100, 200, 100, 300]);
-    flash();
+    el.classList.add('over');
+    setText($('restTag'), 'Estourado');
+    setText($('restSkip'), 'Voltar');
+    $('restSkip').title = 'Encerrar o descanso e voltar para a série';
+    $('restLeft').style.transform = 'scaleX(1)';
+    growVeins();
+    $('veins').classList.add('on');
+    setUrgent(true);
+    sound('rest');
+    vibrate([200, 100, 300]);
+    if (motionOK()) el.querySelector('.r1').animate(
+      [{ transform: 'translateY(0)' }, { transform: 'translateY(-6px)' }, { transform: 'translateY(0)' }],
+      { duration: 240, easing: 'ease-out' });
   } else if (over >= restNextNag && over <= NAG_UNTIL) {
-    // Cutucada periódica: não deixa o descanso virar intervalo de novela.
+    // Cutucada periódica, só no corpo: não deixa o descanso virar intervalo.
     restNextNag = over + NAG_EVERY;
-    beep(2, 1180);
     vibrate([120, 80, 200]);
-    flash();
   }
 
   // Atraso longo demais — o descanso virou pausa: some com a barra em vez de
@@ -126,28 +108,31 @@ function paintRest() {
   if (over >= GIVE_UP) stopRest();
 }
 
-function clearOverState(el, skip) {
-  el.classList.remove('over');
-  document.body.classList.remove('rest-over');
-  document.body.style.removeProperty('--rest-pulse');
-  restPulse = '';
-  const btn = skip || document.getElementById('restSkip');
-  if (btn) {
-    setText(btn, 'PULAR');
-    btn.title = 'Pular descanso';
-  }
+function clearOverState() {
+  const el = $('restBar');
+  if (el) el.classList.remove('over');
+  $('veins')?.classList.remove('on');
+  setUrgent(false);
+  setText($('restTag'), 'Descanso');
+  setText($('restSkip'), 'Pular');
+  if ($('restSkip')) $('restSkip').title = 'Pular descanso';
 }
 
 export function startRest(seconds, label) {
+  const anterior = restHandle ? rhythmBefore : rhythm();
   stopRest();
+  rhythmBefore = anterior;
   restTotal = Math.max(1, seconds || 60);
   restEndsAt = Date.now() + restTotal * 1000;
   restLabel = label || 'Descanso';
   restDoneFired = false;
   restNextNag = 0;
-  const el = bar();
-  el.classList.add('active');
+  clearVeins();
+  setText($('restWho'), restLabel);
+  $('restLeft').style.transform = 'scaleX(1)';
+  $('restBar').classList.add('active');
   document.body.classList.add('resting');
+  setEcg(true);
   paintRest();
   restHandle = setInterval(paintRest, 250);
   // Redesenha na hora ao voltar do bloqueio, sem esperar o próximo tick.
@@ -157,22 +142,28 @@ export function startRest(seconds, label) {
 function onVisible() { if (!document.hidden && restHandle) paintRest(); }
 
 export function stopRest() {
+  const estava = !!restHandle;
   clearInterval(restHandle); restHandle = null;
   restEndsAt = null; restDoneFired = false; restNextNag = 0;
   document.removeEventListener('visibilitychange', onVisible);
-  const el = bar();
-  if (el) { el.classList.remove('active'); clearOverState(el); }
+  const el = $('restBar');
+  if (el) { el.classList.remove('active'); clearOverState(); }
   document.body.classList.remove('resting');
+  setEcg(false);
+  if (estava && rhythmBefore) setRhythm(rhythmBefore.bpm, rhythmBefore.label);
+  rhythmBefore = null;
 }
 
 export function addRestTime(sec) {
   if (!restEndsAt) return;
   // Com o tempo estourado, os segundos contam a partir de agora — somados ao
   // alvo vencido eles cairiam no passado e a barra seguiria em atraso.
+  const estourado = restEndsAt <= Date.now();
   restEndsAt = Math.max(Date.now(), restEndsAt) + sec * 1000;
-  restTotal += sec;
+  restTotal = estourado ? sec : restTotal + sec;
   restDoneFired = false;
   restNextNag = 0;
+  if (estourado) clearVeins();
   paintRest();
 }
 

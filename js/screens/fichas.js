@@ -10,33 +10,42 @@ import { weekStreak } from '../progress.js';
 
 export function screenFichas(params, el) {
   const streak = weekStreak();
-  let html = '<h2>FICHAS</h2>';
+  const nEx = state.fichas.reduce((a, f) => a + f.treinos.reduce((b, t) => b + t.exercicios.length, 0), 0);
+  const nTr = state.fichas.reduce((a, f) => a + f.treinos.length, 0);
+  let html = '<h2>Fichas</h2>';
+  html += '<div class="lbl screen-sub">' + state.fichas.length + ' lâmina' + (state.fichas.length === 1 ? '' : 's') +
+    ' · <b>' + nTr + ' amostra' + (nTr === 1 ? '' : 's') + '</b> · ' + nEx + ' exercícios' +
+    (streak > 0 ? '<br>sequência: <b>' + streak + ' semana' + (streak > 1 ? 's' : '') + '</b>' : '') + '</div>';
 
-  if (streak > 0) {
-    html += '<div class="card-sub" style="margin:-10px 0 16px;">' +
-      'sequência: <span style="color:var(--red)">' + streak + ' semana' + (streak > 1 ? 's' : '') + '</span></div>';
-  }
-
-  html += '<button class="btn btn-primary" id="btnNovaFicha">' + ICON.plus + 'Nova Ficha</button>';
-  html += '<button class="btn btn-secondary" id="btnImportar">' + ICON.import + 'Importar Texto</button>';
-  html += '<button class="btn btn-secondary" id="btnCardio">' + ICON.gps + 'Cardio Avulso</button>';
+  html += '<button class="btn btn-primary" id="btnNovaFicha" type="button">' + ICON.plus + 'Nova ficha</button>';
   html += '<div class="grid-2">';
-  html += '<button class="btn btn-secondary" id="btnHistorico">' + ICON.history + 'Histórico</button>';
-  html += '<button class="btn btn-secondary" id="btnStats">' + ICON.stats + 'Stats</button>';
+  html += '<button class="btn" id="btnImportar" type="button">' + ICON.import + 'Importar</button>';
+  html += '<button class="btn" id="btnCardio" type="button">' + ICON.gps + 'Cardio</button>';
+  html += '<button class="btn" id="btnHistorico" type="button">' + ICON.history + 'Histórico</button>';
+  html += '<button class="btn" id="btnStats" type="button">' + ICON.stats + 'Stats</button>';
   html += '</div>';
 
   if (!state.fichas.length) {
-    html += '<div class="empty">Nenhuma ficha criada.<br>Crie uma nova ou importe de texto / planilha.</div>';
+    html += '<div class="empty">Nenhuma lâmina sob a lente.<br>Crie uma ficha ou importe de texto ou planilha.</div>';
   } else {
     state.fichas.forEach((f, i) => {
-      const nEx = f.treinos.reduce((a, t) => a + t.exercicios.length, 0);
       html += '<div class="card">';
-      html += '<div class="ghost-number">' + String(i + 1).padStart(2, '0') + '</div>';
-      html += '<div class="edit-btn" data-ren="' + f.id + '" title="Renomear">' + ICON.edit + '</div>';
-      html += '<div class="delete-btn" data-del="' + f.id + '" title="Excluir">X</div>';
+      html += '<div class="card-actions">' +
+        '<button class="icon-act" type="button" data-ren="' + f.id + '" title="Renomear" aria-label="Renomear ' + escapeHtml(f.nome) + '">' + ICON.edit + '</button>' +
+        '<button class="icon-act del" type="button" data-del="' + f.id + '" title="Excluir" aria-label="Excluir ' + escapeHtml(f.nome) + '">' + ICON.trash + '</button>' +
+      '</div>';
+      html += '<div class="card-tag">Lâmina ' + String(i + 1).padStart(2, '0') + '</div>';
       html += '<div class="card-title">' + escapeHtml(f.nome) + '</div>';
-      html += '<div class="card-sub">' + f.treinos.length + ' treino(s) · ' + nEx + ' exercício(s)</div>';
-      html += '<button class="btn btn-primary btn-small abrir" data-id="' + f.id + '" style="margin-top:12px;">ABRIR</button>';
+      // Cada treino é uma linha: tocar já começa o treino.
+      f.treinos.forEach(t => {
+        const series = t.exercicios.reduce((a, e) => a + (e.series || 0), 0);
+        const ult = ultimaSessao(t.nome);
+        html += '<button class="am-row" type="button" data-go="' + f.id + '/' + t.id + '">' +
+          '<span class="lt">' + escapeHtml(letra(t.nome)) + '</span>' +
+          '<div><b>' + escapeHtml(semLetra(t.nome)) + '</b><span>' + t.exercicios.length + ' exercícios · ' + series + ' séries' + (ult ? ' · ' + ult : '') + '</span></div>' +
+          ICON.go + '</button>';
+      });
+      html += '<button class="btn btn-ghost btn-small" type="button" data-abrir="' + f.id + '" style="width:100%;margin-top:10px;">' + ICON.edit + (f.treinos.length ? 'Editar treinos' : 'Criar treinos') + '</button>';
       html += '</div>';
     });
   }
@@ -48,7 +57,8 @@ export function screenFichas(params, el) {
   el.querySelector('#btnHistorico').onclick = () => go('/historico');
   el.querySelector('#btnStats').onclick = () => go('/stats');
 
-  el.querySelectorAll('.abrir').forEach(b => b.onclick = () => go('/ficha/' + b.dataset.id));
+  el.querySelectorAll('[data-go]').forEach(b => b.onclick = () => go('/treino/' + b.dataset.go));
+  el.querySelectorAll('[data-abrir]').forEach(b => b.onclick = () => go('/ficha/' + b.dataset.abrir));
   el.querySelectorAll('[data-ren]').forEach(b => b.onclick = e => {
     e.stopPropagation();
     renomearFicha(b.dataset.ren);
@@ -59,7 +69,7 @@ export function screenFichas(params, el) {
     if (!f) return;
     const ok = await confirmDialog('Excluir ficha?',
       '"' + f.nome + '" e seus ' + f.treinos.length + ' treino(s) serão removidos. O histórico de sessões NÃO será apagado.',
-      'EXCLUIR');
+      'Excluir');
     if (!ok) return;
     state.fichas = state.fichas.filter(x => x.id !== b.dataset.del);
     saveState();
@@ -67,6 +77,26 @@ export function screenFichas(params, el) {
     toast('Ficha excluída');
   });
 }
+
+// "A — Peito/Tríceps" vira a letra A grande e "Peito / Tríceps" ao lado.
+const RX_LETRA = /^\s*(?:treino\s+)?([A-Z0-9]{1,2})\s*[-—–:·.)]\s*(.+)$/i;
+function letra(nome) {
+  const m = nome.match(RX_LETRA);
+  return m ? m[1].toUpperCase() : (nome.trim()[0] || '?').toUpperCase();
+}
+function semLetra(nome) {
+  const m = nome.match(RX_LETRA);
+  return (m ? m[2] : nome).replace(/\s*\/\s*/g, ' / ');
+}
+
+/** "última há 3 dias", a partir do histórico. */
+function ultimaSessao(nomeTreino) {
+  const h = [...state.workoutHistory].reverse().find(x => x.treino === nomeTreino);
+  if (!h) return '';
+  const dias = Math.floor((startOfDay(new Date()) - startOfDay(new Date(h.date))) / 86400000);
+  return dias <= 0 ? 'hoje' : dias === 1 ? 'ontem' : 'última há ' + dias + ' dias';
+}
+function startOfDay(d) { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; }
 
 /**
  * Nova ficha, em branco ou já com a divisão ABCD montada.
@@ -90,13 +120,13 @@ async function novaFicha() {
       '</select>' +
       '<div class="hint" id="hintModelo">Você cria os treinos depois, um a um.</div>',
     buttons: [
-      { label: 'CRIAR', cls: 'btn-primary', value: 'ok', onClick(ov) {
+      { label: 'Criar', cls: 'btn-primary', value: 'ok', onClick(ov) {
         modelo = ov.querySelector('#inpModelo').value;
         nome = ov.querySelector('#inpNome').value.trim();
         if (!nome && modelo === 'abcd') nome = 'Ficha ABCD';
         if (!nome) { modalError('Digite um nome'); return false; }
       } },
-      { label: 'CANCELAR', cls: 'btn-ghost', value: null },
+      { label: 'Cancelar', cls: 'btn-secondary', value: null },
     ],
     onMount(ov) {
       const sel = ov.querySelector('#inpModelo');
@@ -133,11 +163,11 @@ async function renomearFicha(id) {
     title: 'Renomear Ficha',
     body: '<label>Nome</label><input id="inpNome" value="' + escapeHtml(f.nome) + '" />',
     buttons: [
-      { label: 'SALVAR', cls: 'btn-primary', value: 'ok', onClick(ov) {
+      { label: 'Salvar', cls: 'btn-primary', value: 'ok', onClick(ov) {
         nome = ov.querySelector('#inpNome').value.trim();
         if (!nome) { modalError('Digite um nome'); return false; }
       } },
-      { label: 'CANCELAR', cls: 'btn-ghost', value: null },
+      { label: 'Cancelar', cls: 'btn-secondary', value: null },
     ],
   });
   if (v !== 'ok') return;
@@ -159,14 +189,14 @@ async function importarTexto() {
       '<label>Cole o texto da ficha</label>' +
       '<textarea id="inpTexto" placeholder="' + escapeHtml(exemplo) + '"></textarea>',
     buttons: [
-      { label: 'IMPORTAR', cls: 'btn-primary', value: 'ok', onClick(ov) {
+      { label: 'Importar', cls: 'btn-primary', value: 'ok', onClick(ov) {
         ficha = parseTextoFicha(ov.querySelector('#inpTexto').value);
         if (!ficha) {
           modalError('Nenhum exercício reconhecido. Confira o formato acima.');
           return false;
         }
       } },
-      { label: 'CANCELAR', cls: 'btn-ghost', value: null },
+      { label: 'Cancelar', cls: 'btn-secondary', value: null },
     ],
   });
   if (v !== 'ok' || !ficha) return;
