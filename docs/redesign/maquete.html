@@ -1,0 +1,1037 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NerV Espécime</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anybody:wdth,wght@50..150,100..900&family=Martian+Mono:wdth,wght@75..112.5,100..800&display=swap">
+<style>
+/* Maquete de referência visual e de movimento. Valores canônicos, código não.
+   Layout: protótipo fixo à esquerda, catálogo de movimentos à direita; empilha no celular. */
+:root {
+  color-scheme: dark;
+  /* Organismo */
+  --flesh-0: #0C0709;  /* fundo, preto-sangue */
+  --flesh-1: #170D11;  /* tecido: cards */
+  --flesh-2: #24141A;  /* membrana: campos, superfícies */
+  --vein:    #4A2530;  /* linhas, bordas, estrias */
+  --bone:    #EEE3CA;  /* texto principal */
+  --bone-2:  #A8977A;  /* texto secundário */
+  /* Máquina: osso D3 (Medula) */
+  --osso:    #D6B57A;
+  --osso-hi: #EEDAA9;
+  --osso-lo: #94692C;
+  --on-osso: #1A0E0A;  /* texto sobre osso */
+  /* Rampa térmica: só o corpo (esforço, calor) */
+  --t1: #2A1846; --t2: #7A1C5E; --t3: #D83A2E; --t4: #FF9A1F; --t5: #FFF2D2;
+  --ramp: linear-gradient(90deg, var(--t1), var(--t2) 30%, var(--t3) 60%, var(--t4) 85%, var(--t5));
+  /* Hemorragia: só a cobrança do descanso */
+  --hemo: #FF2440;
+
+  --disp: 'Anybody', 'Arial Narrow', sans-serif;
+  --mono: 'Martian Mono', ui-monospace, Menlo, Consolas, monospace;
+
+  /* Movimento: Metabolismo */
+  --std:   cubic-bezier(0.2, 0, 0, 1);       /* padrão */
+  --exit:  cubic-bezier(0.4, 0, 1, 1);       /* saídas */
+  --spasm: cubic-bezier(0.5, 1.6, 0.4, 1);   /* contração: passa do ponto e volta */
+  --heavy: cubic-bezier(0.7, 0, 0.2, 1);     /* calor, encistamento */
+
+  --beat: 0; /* 0..1, escrito pelo coração a cada quadro */
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; background: #060304; color: var(--bone); font-family: var(--mono); }
+body { min-height: 100vh; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--osso); outline-offset: 2px; }
+
+/* ====== página-prospecto ====== */
+.page { display: grid; grid-template-columns: 430px minmax(0, 1fr); gap: 56px; max-width: 1320px; margin: 0 auto; padding: 40px 32px 80px; }
+.stage { position: sticky; top: 24px; align-self: start; }
+.doc h1 { font-family: var(--disp); font-weight: 900; font-stretch: 56%; font-size: 76px; line-height: .86; margin: 0; text-transform: uppercase; letter-spacing: .005em; }
+.doc h1 span { color: var(--osso); }
+.lede { font-size: 12px; line-height: 1.8; color: var(--bone-2); max-width: 640px; margin: 18px 0 22px; }
+.ctls { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 40px; }
+.ctl { border: 1px solid var(--bone-2); padding: 10px 14px; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; min-height: 40px; }
+.ctl[aria-pressed="true"] { background: var(--osso); color: var(--on-osso); border-color: var(--osso); }
+.doc h2 { font-family: var(--disp); font-weight: 850; font-stretch: 64%; font-size: 40px; text-transform: uppercase; margin: 48px 0 6px; line-height: .95; }
+.doc h2 + p { font-size: 11px; color: var(--bone-2); line-height: 1.8; margin: 0 0 18px; max-width: 680px; }
+.moves { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--bone-2); }
+.move { display: grid; grid-template-columns: 54px minmax(0, 1fr) auto; gap: 16px; align-items: start; padding: 18px 0; border-bottom: 1px dashed var(--vein); }
+.move-num { font-family: var(--disp); font-weight: 900; font-stretch: 60%; font-size: 34px; line-height: .9; color: var(--osso); }
+.move h3 { font-family: var(--disp); font-weight: 800; font-stretch: 80%; font-size: 21px; text-transform: uppercase; margin: 0 0 4px; }
+.move p { font-size: 11px; line-height: 1.75; color: var(--bone-2); margin: 0 0 6px; }
+.spec { font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--osso); }
+.play { border: 1px solid var(--osso); color: var(--osso); padding: 10px 12px; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; min-height: 40px; }
+.play:hover { background: var(--osso); color: var(--on-osso); }
+.tbl { width: 100%; border-collapse: collapse; font-size: 10.5px; line-height: 1.6; }
+.tbl th, .tbl td { text-align: left; padding: 9px 10px 9px 0; border-bottom: 1px dashed var(--vein); vertical-align: top; }
+.tbl th { font-weight: 600; color: var(--bone-2); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; border-bottom: 1px solid var(--bone-2); }
+.tbl code { color: var(--osso); }
+.sw { display: inline-block; width: 12px; height: 12px; vertical-align: -1px; margin-right: 8px; border: 1px solid #ffffff22; }
+.rules { font-size: 11px; line-height: 1.8; color: var(--bone-2); padding-left: 18px; }
+.rules b { color: var(--bone); font-weight: 600; }
+
+/* ====== telefone ====== */
+.phone {
+  position: relative; width: 390px; height: 844px; overflow: hidden; overflow: clip; isolation: isolate;
+  background: var(--flesh-0); border: 1px solid #2c1a20; box-shadow: 0 40px 80px -30px #000;
+}
+.phone-cap { display: flex; justify-content: space-between; font-size: 9px; letter-spacing: .1em; color: var(--bone-2); text-transform: uppercase; margin-top: 10px; }
+
+/* Membrana celular: o fundo vivo. Respira com --beat. */
+.membrane { position: absolute; inset: -30px; z-index: 0; pointer-events: none;
+  opacity: calc(.42 + var(--beat) * .22); transform: scale(calc(1 + var(--beat) * .012));
+  background:
+    radial-gradient(closest-side, transparent 66%, #3c1a25 84%, transparent 100%) 0 0 / 88px 76px,
+    radial-gradient(closest-side, transparent 64%, #2d121b 82%, transparent 100%) 44px 38px / 88px 76px,
+    radial-gradient(120% 70% at 75% 15%, #2c0f19 0, transparent 60%),
+    radial-gradient(90% 60% at 10% 95%, #24080f 0, transparent 70%);
+}
+/* Grão de tecido. No app: um PNG pequeno em repetição, não um filtro. */
+.grain { position: absolute; inset: 0; z-index: 50; pointer-events: none; opacity: .2; mix-blend-mode: overlay; }
+
+/* Topo */
+.top { position: absolute; top: 0; left: 0; right: 0; z-index: 20; padding: 16px 16px 0; background: linear-gradient(var(--flesh-0) 70%, transparent); }
+.top-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; height: 44px; }
+.wm { font-family: var(--disp); font-weight: 900; font-size: 25px; letter-spacing: .06em; font-stretch: calc(118% + var(--beat) * 14%); line-height: 1; }
+.wm em { font-style: normal; color: var(--osso); }
+.top-r { display: flex; align-items: center; gap: 8px; }
+.readout { font-size: 8.5px; letter-spacing: .08em; color: var(--bone-2); text-align: right; line-height: 1.55; text-transform: uppercase; }
+.readout b { color: var(--osso); font-weight: 600; font-variant-numeric: tabular-nums; }
+.ibtn { width: 44px; height: 44px; border: 1px solid var(--bone-2); display: grid; place-items: center; font-size: 8px; letter-spacing: .08em; }
+.ibtn[aria-pressed="true"] { background: var(--bone); color: var(--flesh-0); }
+.ruler { height: 10px; margin-top: 10px; opacity: .8;
+  background: repeating-linear-gradient(90deg, var(--vein) 0 1px, transparent 1px 8px) bottom/100% 5px repeat-x,
+              repeating-linear-gradient(90deg, var(--bone-2) 0 1px, transparent 1px 40px) bottom/100% 10px repeat-x; }
+
+/* Telas */
+.scroll { position: absolute; inset: 82px 0 0; z-index: 10; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; padding: 6px 16px 40px; }
+.scroll::-webkit-scrollbar { display: none; }
+.screen[hidden] { display: none; }
+body.resting .scroll { padding-bottom: 150px; }
+
+.back { display: inline-flex; align-items: center; gap: 8px; font-size: 9.5px; letter-spacing: .12em; color: var(--bone-2); text-transform: uppercase; min-height: 44px; }
+.back svg { width: 14px; height: 14px; }
+.h-screen { font-family: var(--disp); font-weight: 900; font-stretch: 56%; font-size: 54px; line-height: .86; text-transform: uppercase; margin: 0 0 4px; text-wrap: balance; }
+.lbl { font-size: 9px; letter-spacing: .1em; color: var(--bone-2); text-transform: uppercase; }
+.lbl b { color: var(--osso); font-weight: 600; }
+
+/* Botões */
+.btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 52px; padding: 14px 16px; margin-bottom: 10px;
+  font-family: var(--disp); font-weight: 800; font-stretch: 88%; font-size: 15px; letter-spacing: .14em; text-transform: uppercase;
+  border: 1px solid var(--bone-2); position: relative; overflow: hidden; user-select: none; }
+.btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+.btn.primary { background: var(--osso); color: var(--on-osso); border-color: var(--osso);
+  background-image: radial-gradient(ellipse 2px 1.2px at 88% 30%, #6d4a1c 95%, transparent), radial-gradient(ellipse 1.6px 1px at 94% 70%, #6d4a1c 95%, transparent),
+                    radial-gradient(ellipse 2px 1.2px at 8% 64%, #6d4a1c 95%, transparent), linear-gradient(180deg, var(--osso-hi), var(--osso) 45%, #c39d5e); }
+.btn.ghost { border-style: dashed; color: var(--bone-2); }
+.btn:active { transform: translateY(1px); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* Lâmina (card) */
+.slide { position: relative; background: var(--flesh-1); border: 1px solid var(--vein); padding: 16px 14px 14px; margin-bottom: 12px; overflow: hidden; }
+.fib { position: absolute; inset: -10px; pointer-events: none; opacity: .55;
+  background: repeating-linear-gradient(-8deg, transparent 0 5px, rgb(122 28 94 / .14) 5px 6px, transparent 6px 11px); }
+.slide > :not(.fib):not(.reg) { position: relative; }
+.reg { position: absolute; width: 12px; height: 12px; border: 0 solid var(--osso); pointer-events: none; z-index: 2; }
+.reg.a { top: 5px; left: 5px; border-top-width: 1.5px; border-left-width: 1.5px; }
+.reg.b { top: 5px; right: 5px; border-top-width: 1.5px; border-right-width: 1.5px; }
+.reg.c { bottom: 5px; left: 5px; border-bottom-width: 1.5px; border-left-width: 1.5px; }
+.reg.d { bottom: 5px; right: 5px; border-bottom-width: 1.5px; border-right-width: 1.5px; }
+
+/* Fichas */
+.am-row { display: grid; grid-template-columns: 46px minmax(0, 1fr) 20px; gap: 12px; align-items: center; width: 100%; text-align: left; padding: 12px 0; border-top: 1px dashed var(--vein); min-height: 64px; }
+.am-row .lt { font-family: var(--disp); font-weight: 900; font-stretch: 60%; font-size: 44px; line-height: .8; color: var(--osso); }
+.am-row b { display: block; font-family: var(--disp); font-weight: 750; font-stretch: 82%; font-size: 18px; text-transform: uppercase; line-height: 1.05; }
+.am-row span { font-size: 9px; letter-spacing: .08em; color: var(--bone-2); text-transform: uppercase; }
+.am-row svg { width: 16px; height: 16px; color: var(--bone-2); }
+
+/* Execução */
+.sess { display: flex; align-items: center; gap: 14px; margin: 10px 0 8px; }
+.clock { position: relative; padding: 4px 10px 4px 0; font-size: 40px; font-weight: 600; font-stretch: 80%; letter-spacing: -.02em; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.clock svg { position: absolute; left: -14px; top: -18px; width: 220px; height: 92px; pointer-events: none; }
+.clock span { position: relative; }
+.therm { margin: 2px 0 16px; }
+.therm .bar { position: relative; height: 14px; background: var(--flesh-2); border: 1px solid var(--vein); overflow: hidden; }
+.therm .fill { position: absolute; inset: 0; background: var(--ramp); background-size: 390px 100%; clip-path: inset(0 calc(100% - var(--heat, 0%)) 0 0); transition: clip-path 600ms var(--heavy); }
+.therm .bar::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, transparent 0 9px, rgb(12 7 9 / .75) 9px 10px); }
+.therm .l { display: flex; justify-content: space-between; margin-top: 6px; }
+.therm .l b { color: var(--t4); font-weight: 600; }
+
+.ex { position: relative; margin-bottom: 12px; }
+.ex .slide { margin: 0; }
+.ex-tag { font-size: 9px; letter-spacing: .1em; color: var(--osso); text-transform: uppercase; }
+.ex h3 { font-family: var(--disp); font-weight: 850; font-stretch: 70%; font-size: 29px; line-height: .94; text-transform: uppercase; margin: 4px 0 4px; text-wrap: balance; }
+.ex-sub { font-size: 9px; letter-spacing: .07em; color: var(--bone-2); text-transform: uppercase; }
+.hint { font-size: 9px; letter-spacing: .05em; color: var(--bone-2); margin: 6px 0 10px; line-height: 1.6; }
+.hint b { color: var(--bone); font-weight: 500; }
+.chip { display: inline-block; border: 1px solid var(--t4); color: var(--t4); padding: 1px 5px; margin-left: 6px; font-size: 8.5px; letter-spacing: .08em; font-weight: 600; vertical-align: 1px; }
+.set { display: grid; grid-template-columns: 26px 1fr 1fr 44px; align-items: end; gap: 10px; padding: 7px 0; border-top: 1px dashed var(--vein); }
+.set .n { font-size: 10px; color: var(--bone-2); padding-bottom: 7px; }
+.fld { display: flex; align-items: baseline; gap: 5px; border-bottom: 1.5px solid var(--bone-2); padding: 0 2px 4px; min-height: 36px; }
+.fld input { width: 100%; min-width: 0; background: none; border: 0; outline: 0; color: var(--bone); font-family: var(--disp); font-weight: 700; font-stretch: 85%; font-size: 24px; font-variant-numeric: tabular-nums; padding: 0; line-height: 1.1; }
+.fld input::placeholder { font-family: var(--mono); font-size: 10px; font-weight: 400; color: #6e5c52; letter-spacing: .04em; }
+.fld span { font-size: 8.5px; color: var(--bone-2); letter-spacing: .06em; }
+.fld:focus-within { border-bottom-color: var(--osso); }
+.set.done .n { color: var(--osso); }
+.set.done .fld { border-bottom-color: var(--osso-lo); }
+.set.done .fld input { color: var(--bone-2); }
+
+/* Célula: o checkbox */
+.cell { position: relative; width: 44px; height: 44px; justify-self: end; display: grid; place-items: center; }
+.cell .ring { position: absolute; inset: 4px; border-radius: 50%; border: 1.5px solid var(--bone-2); }
+.cell .nuc { position: absolute; inset: 12px; border-radius: 50%; border: 1px dashed var(--vein); }
+.cell .os { position: absolute; inset: 4px; border-radius: 50%; clip-path: circle(0% at 50% 50%); }
+.cell .os svg { width: 100%; height: 100%; display: block; }
+.set.done .cell .os { clip-path: circle(75% at 50% 50%); filter: drop-shadow(0 0 6px rgb(214 181 122 / .35)); }
+.set.done .cell .ring { border-color: var(--osso-lo); }
+.set.next .cell .ring { border-color: var(--osso); box-shadow: 0 0 0 calc(3px + var(--beat) * 4px) rgb(214 181 122 / calc(.1 + var(--beat) * .18)); }
+.ripple { position: absolute; inset: 4px; border-radius: 50%; border: 1.5px solid var(--osso); pointer-events: none; opacity: 0; }
+.spark { position: absolute; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: var(--osso-hi); box-shadow: 0 0 10px 2px var(--osso), 0 0 22px 4px rgb(214 181 122 / .4); pointer-events: none; z-index: 5; }
+.rest-btn { margin: 12px 0 0; min-height: 46px; font-size: 13px; }
+
+/* Cápsula: exercício encistado */
+.cap { display: none; width: 100%; align-items: center; gap: 10px; padding: 10px 12px; min-height: 52px; text-align: left;
+  border: 1px solid var(--vein); background: var(--flesh-1); border-radius: 22px 2px 22px 2px; }
+.cap .dot { width: 24px; height: 24px; flex-shrink: 0; filter: drop-shadow(0 0 5px rgb(214 181 122 / .35)); }
+.cap .dot svg { width: 100%; height: 100%; display: block; }
+.cap b { font-family: var(--disp); font-weight: 750; font-stretch: 78%; font-size: 15px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.cap span { margin-left: auto; font-size: 8.5px; letter-spacing: .06em; color: var(--bone-2); white-space: nowrap; }
+.ex.cyst .slide { display: none; }
+.ex.cyst .cap { display: flex; }
+.seal { position: absolute; left: 0; right: 0; top: 50%; height: 2px; margin-top: -1px; z-index: 6; pointer-events: none; opacity: 0;
+  background: linear-gradient(90deg, transparent, var(--osso-hi) 20%, #fff8e6 50%, var(--osso-hi) 80%, transparent); box-shadow: 0 0 18px 4px rgb(238 218 169 / .6); }
+
+/* Stats */
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0; }
+.stat { position: relative; background: var(--flesh-1); border: 1px solid var(--vein); padding: 14px 12px 12px; }
+.stat .v { font-family: var(--disp); font-weight: 850; font-stretch: 66%; font-size: 40px; line-height: .9; font-variant-numeric: tabular-nums; }
+.stat .v.hot { background: linear-gradient(90deg, var(--t3), var(--t4)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.chart { display: flex; align-items: flex-end; gap: 7px; height: 170px; padding: 18px 0 0; border-bottom: 1px solid var(--bone-2); position: relative; }
+.chart::before { content: ""; position: absolute; inset: 18px 0 0; background: repeating-linear-gradient(180deg, var(--vein) 0 1px, transparent 1px 38px); opacity: .6; }
+.col { flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: stretch; position: relative; }
+.col i { display: block; transform-origin: bottom; background: linear-gradient(0deg, var(--t1), var(--t2) 25%, var(--t3) 55%, var(--t4) 80%, var(--t5)); background-size: 100% 152px; background-position: bottom; }
+.col small { position: absolute; bottom: -20px; left: 0; right: 0; text-align: center; font-size: 8px; color: var(--bone-2); }
+.col em { font-style: normal; font-size: 8.5px; text-align: center; color: var(--bone-2); margin-bottom: 4px; font-variant-numeric: tabular-nums; }
+
+/* Feixe de varredura (02) */
+.beam { position: absolute; left: 0; right: 0; top: 82px; height: 3px; z-index: 30; pointer-events: none; opacity: 0;
+  background: linear-gradient(90deg, transparent, var(--osso) 15%, var(--osso-hi) 50%, var(--osso) 85%, transparent);
+  box-shadow: 0 0 20px 6px rgb(214 181 122 / .35), 0 -40px 60px -20px rgb(214 181 122 / .18); }
+
+/* Barra de descanso (07) */
+.rest { position: absolute; left: 0; right: 0; bottom: 0; z-index: 35; padding: 12px 16px 16px; background: linear-gradient(180deg, #1d1014, #110a0c); border-top: 2px solid var(--osso); transform: translateY(105%); transition: transform 200ms var(--exit); }
+.rest.up { transform: none; transition: transform 320ms var(--std); }
+body.rm .rest { transition: none; }
+.rest .r1 { display: flex; align-items: center; gap: 10px; }
+.rest .tag { font-size: 8.5px; letter-spacing: .1em; padding: 3px 6px; border: 1px solid var(--osso); color: var(--osso); font-weight: 600; text-transform: uppercase; }
+.rest .cnt { font-size: 36px; font-weight: 700; font-stretch: 80%; font-variant-numeric: tabular-nums; line-height: 1; }
+.rest .who { margin-left: auto; text-align: right; font-size: 8.5px; letter-spacing: .08em; color: var(--bone-2); line-height: 1.55; text-transform: uppercase; max-width: 150px; }
+.rest .who b { color: var(--osso); font-weight: 600; font-variant-numeric: tabular-nums; }
+.ecg { position: relative; height: 34px; overflow: hidden; margin: 6px 0 4px; }
+.ecg svg { position: absolute; left: 0; top: 0; height: 34px; width: 780px; }
+.ecg path { stroke: var(--osso); }
+.rest .r2 { display: flex; align-items: center; gap: 8px; }
+.rest .left { flex: 1; height: 3px; background: var(--vein); position: relative; }
+.rest .left i { position: absolute; inset: 0; background: var(--osso); transform-origin: left; }
+.rest .mini { border: 1px solid var(--bone-2); padding: 0 12px; height: 40px; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; }
+.rest.over { border-top-color: var(--hemo); background: linear-gradient(180deg, rgb(70 6 18 / calc(.85 + var(--beat) * .15)), #14050a); }
+.rest.over .tag { background: var(--hemo); color: #12060a; border-color: var(--hemo); }
+.rest.over .cnt { color: #fff; text-shadow: 0 0 calc(10px + var(--beat) * 16px) var(--hemo); }
+.rest.over .ecg path { stroke: var(--hemo); }
+.rest.over .who, .rest.over .who b { color: #ffb3bd; }
+.rest.over .left i { background: var(--hemo); }
+.veins { position: absolute; inset: 0; z-index: 32; pointer-events: none; opacity: 0; transition: opacity 600ms var(--std); }
+.veins.on { opacity: calc(.35 + var(--beat) * .65); transition: none; }
+.veins .wash { position: absolute; inset: 0; background: radial-gradient(140% 50% at 50% 110%, rgb(255 36 64 / .45), transparent 55%), radial-gradient(50% 100% at -10% 70%, rgb(255 36 64 / .22), transparent 60%), radial-gradient(50% 100% at 110% 70%, rgb(255 36 64 / .22), transparent 60%); }
+.veins svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* Mutação (08) */
+.mut { position: absolute; inset: 0; z-index: 60; display: none; place-items: center; overflow: hidden; background: var(--flesh-0); text-align: center; }
+.mut.on { display: grid; }
+.mut .heat { position: absolute; inset: 0; background: linear-gradient(0deg, var(--t5) 0%, var(--t4) 14%, var(--t3) 30%, var(--t2) 48%, var(--t1) 66%, transparent 84%); background-size: 100% 200%; }
+.mut .core { position: relative; z-index: 2; padding: 0 20px; }
+.mut svg.div { width: 220px; height: 120px; display: block; margin: 0 auto 6px; overflow: visible; }
+.mut .word { font-family: var(--disp); font-weight: 900; font-size: 66px; line-height: .85; text-transform: uppercase; color: var(--bone); font-stretch: 100%; }
+.mut .sub { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--osso); margin-top: 12px; }
+.mut .list { font-size: 11px; letter-spacing: .06em; line-height: 1.9; margin-top: 12px; color: var(--bone); font-variant-numeric: tabular-nums; }
+.mut .list b { color: var(--t4); font-weight: 600; }
+.mut .skip { position: absolute; bottom: 24px; left: 0; right: 0; font-size: 8.5px; letter-spacing: .12em; color: var(--bone-2); z-index: 2; }
+
+/* Lâmina modal (A) */
+.scrim { position: absolute; inset: 0; z-index: 70; background: rgb(6 3 4 / .72); display: none; }
+.sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 71; display: none; background: var(--flesh-1); border-top: 2px solid var(--osso); padding: 22px 18px 22px; }
+.sheet .fib { opacity: .4; }
+.sheet h4 { position: relative; font-family: var(--disp); font-weight: 900; font-stretch: 60%; font-size: 36px; line-height: .9; text-transform: uppercase; margin: 6px 0 10px; }
+.sheet p { position: relative; font-size: 11px; line-height: 1.7; color: var(--bone-2); margin: 0 0 18px; }
+.sheet .grid2 { position: relative; }
+
+/* Aviso (B) */
+.toast { position: absolute; left: 0; right: 0; top: 0; z-index: 80; padding: 16px 16px 12px; background: var(--flesh-2); border-bottom: 2px dashed var(--osso);
+  font-size: 10px; letter-spacing: .1em; text-transform: uppercase; display: none; align-items: center; gap: 10px; }
+.toast i { width: 18px; height: 18px; flex-shrink: 0; }
+.toast i svg { width: 100%; height: 100%; display: block; }
+
+/* Leitura (03): caracteres do decodificador */
+.rd { display: inline-block; }
+
+/* Sedado e movimento reduzido: o ambiente para, o feedback fica. */
+body.sedated .membrane, body.rm .membrane { opacity: .42; transform: none; }
+body.sedated .wm, body.rm .wm { font-stretch: 118%; }
+
+@media (max-width: 960px) {
+  .page { grid-template-columns: minmax(0, 1fr); padding: 20px 16px 60px; gap: 32px; }
+  .stage { position: static; display: flex; flex-direction: column; align-items: center; }
+  .phone { max-width: 100%; }
+  .doc h1 { font-size: 56px; }
+  .move { grid-template-columns: 40px minmax(0, 1fr); }
+  .move .play { grid-column: 2; justify-self: start; }
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="noise"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="3" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 1  0 0 0 0 .9  0 0 0 0 .8  0 0 0 .9 0"/></filter>
+    <filter id="goo"><feGaussianBlur in="SourceGraphic" stdDeviation="7" result="b"/><feColorMatrix in="b" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -9" result="g"/><feComposite in="SourceGraphic" in2="g" operator="atop"/></filter>
+    <radialGradient id="osG" cx="42%" cy="36%" r="70%"><stop offset="0" stop-color="#EEDAA9"/><stop offset=".5" stop-color="#D6B57A"/><stop offset="1" stop-color="#94692C"/></radialGradient>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M20 12H5M11 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"/></symbol>
+    <symbol id="i-go" viewBox="0 0 24 24"><path d="M5 12h14M13 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"/></symbol>
+    <symbol id="i-rest" viewBox="0 0 24 24"><path d="M3 12h4l2-5 3 10 2-7 2 4h5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 4v16M4 12h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"/></symbol>
+  </defs>
+</svg>
+
+<div class="page">
+  <div class="stage">
+    <div class="phone" id="phone">
+      <div class="membrane" aria-hidden="true"></div>
+      <svg class="grain" aria-hidden="true" width="100%" height="100%"><rect width="100%" height="100%" filter="url(#noise)"/></svg>
+
+      <div class="top">
+        <div class="top-row">
+          <div class="wm" aria-label="NerV">NER<em>V</em></div>
+          <div class="top-r">
+            <div class="readout"><span id="ro-where">Lâmina 01</span> · <b id="ro-bpm">52 BPM</b><br><span id="ro-state">Organismo em repouso</span></div>
+            <button class="ibtn" id="btn-sedar" type="button" aria-pressed="false" aria-label="Sedar: desliga os efeitos de ambiente">SEDAR</button>
+          </div>
+        </div>
+        <div class="ruler" aria-hidden="true"></div>
+      </div>
+
+      <div class="beam" id="beam" aria-hidden="true"></div>
+
+      <div class="scroll" id="scroll">
+        <!-- Fichas -->
+        <section class="screen" id="v-fichas">
+          <h1 class="h-screen" style="margin-top:12px">Fichas</h1>
+          <div class="lbl" style="margin-bottom:16px">1 lâmina · <b>4 amostras</b> · 25 exercícios</div>
+          <button class="btn primary" type="button" id="btn-nova"><svg aria-hidden="true"><use href="#i-plus"/></svg>Nova ficha</button>
+          <div class="grid2">
+            <button class="btn" type="button">Importar</button>
+            <button class="btn" type="button">Cardio</button>
+            <button class="btn" type="button">Histórico</button>
+            <button class="btn" type="button" id="btn-stats">Stats</button>
+          </div>
+          <div class="slide" style="margin-top:6px">
+            <div class="fib"></div><i class="reg a"></i><i class="reg b"></i><i class="reg c"></i><i class="reg d"></i>
+            <div class="ex-tag">Lâmina 01</div>
+            <h3 style="font-family:var(--disp);font-weight:850;font-stretch:70%;font-size:34px;line-height:.9;text-transform:uppercase;margin:4px 0 10px">Ficha ABCD</h3>
+            <button class="am-row" type="button" data-go="treino"><span class="lt">A</span><div><b>Peito / Tríceps</b><span>3 exercícios · 11 séries · última há 4 dias</span></div><svg aria-hidden="true"><use href="#i-go"/></svg></button>
+            <button class="am-row" type="button"><span class="lt">B</span><div><b>Costas / Bíceps</b><span>6 exercícios · 20 séries · última há 3 dias</span></div><svg aria-hidden="true"><use href="#i-go"/></svg></button>
+            <button class="am-row" type="button"><span class="lt">C</span><div><b>Pernas / Panturrilha</b><span>7 exercícios · 23 séries · última há 2 dias</span></div><svg aria-hidden="true"><use href="#i-go"/></svg></button>
+            <button class="am-row" type="button"><span class="lt">D</span><div><b>Ombros / Abdômen</b><span>6 exercícios · 19 séries · ontem</span></div><svg aria-hidden="true"><use href="#i-go"/></svg></button>
+          </div>
+        </section>
+
+        <!-- Execução -->
+        <section class="screen" id="v-treino" hidden>
+          <button class="back" type="button" data-go="fichas"><svg aria-hidden="true"><use href="#i-back"/></svg>Ficha ABCD</button>
+          <h1 class="h-screen">A · Peito / Tríceps</h1>
+          <div class="sess">
+            <button class="clock" type="button" id="clock" aria-label="Tempo de sessão">
+              <svg viewBox="0 0 220 92" fill="none" aria-hidden="true">
+                <path d="M8 46c0-22 44-40 96-40s104 16 104 40-50 40-102 40S8 68 8 46z" stroke="#94692C" stroke-opacity=".75"/>
+                <path d="M22 46c1-17 38-31 82-31s88 13 88 31-42 31-86 31-85-14-84-31z" stroke="#94692C" stroke-opacity=".5"/>
+                <path d="M37 46c0-12 31-22 68-22s72 9 72 22-35 23-71 23-69-11-69-23z" stroke="#4A2530"/>
+              </svg>
+              <span id="clock-t">38:40</span>
+            </button>
+            <div class="lbl" style="line-height:1.7"><span id="p-sets" class="rd">3 / 11</span> séries<br>amostra <span id="p-am">01</span> / 03</div>
+          </div>
+          <div class="therm">
+            <div class="bar"><div class="fill" id="heat"></div></div>
+            <div class="l lbl"><span>Temperatura · volume</span><span><b id="p-vol" class="rd">1.845 kg</b> · <span id="p-heat">aquecendo</span></span></div>
+          </div>
+          <div id="exs"></div>
+          <button class="btn primary" type="button" id="btn-fim" style="margin-top:8px">Concluir</button>
+          <button class="btn" type="button">Seguir para cardio</button>
+          <button class="btn ghost" type="button">Descartar sessão</button>
+        </section>
+
+        <!-- Stats -->
+        <section class="screen" id="v-stats" hidden>
+          <button class="back" type="button" data-go="fichas"><svg aria-hidden="true"><use href="#i-back"/></svg>Fichas</button>
+          <h1 class="h-screen">Stats</h1>
+          <div class="lbl">Leitura acumulada · 8 semanas</div>
+          <div class="stat-grid">
+            <div class="stat"><div class="v rd" data-v="47">47</div><div class="lbl">Sessões</div></div>
+            <div class="stat"><div class="v rd" data-v="52h">52h</div><div class="lbl">Tempo total</div></div>
+            <div class="stat"><div class="v hot rd" data-v="184t">184t</div><div class="lbl">Volume</div></div>
+            <div class="stat"><div class="v rd" data-v="9">9</div><div class="lbl">Semanas seguidas</div></div>
+          </div>
+          <div class="slide">
+            <div class="fib"></div>
+            <div class="ex-tag">Calor por semana</div>
+            <div class="chart" id="chart" aria-label="Sessões por semana"></div>
+            <div style="height:26px"></div>
+          </div>
+        </section>
+      </div>
+
+      <div class="veins" id="veins" aria-hidden="true"><div class="wash"></div><svg id="vein-svg" viewBox="0 0 390 844" preserveAspectRatio="none"></svg></div>
+
+      <div class="rest" id="rest" role="timer" aria-live="polite">
+        <div class="r1">
+          <span class="tag" id="r-tag">Descanso</span>
+          <span class="cnt" id="r-cnt">00:12</span>
+          <div class="who"><span id="r-who">Supino inclinado</span><br><b id="r-bpm">88 BPM</b></div>
+        </div>
+        <div class="ecg" aria-hidden="true"><svg id="ecg" viewBox="0 0 780 34" preserveAspectRatio="none" fill="none"><path stroke-width="1.6" d=""/></svg></div>
+        <div class="r2">
+          <div class="left"><i id="r-left"></i></div>
+          <button class="mini" type="button" id="r-add">+30s</button>
+          <button class="mini" type="button" id="r-skip">Pular</button>
+        </div>
+      </div>
+
+      <div class="mut" id="mut" role="dialog" aria-label="Recorde quebrado">
+        <div class="heat" id="mut-heat"></div>
+        <div class="core">
+          <svg class="div" viewBox="0 0 220 120" aria-hidden="true"><g filter="url(#goo)"><circle id="c1" cx="110" cy="60" r="34" fill="url(#osG)"/><circle id="c2" cx="110" cy="60" r="34" fill="url(#osG)"/></g><g id="n1" opacity=".8"><circle cx="110" cy="60" r="20" fill="none" stroke="#7a5420" stroke-width="1.5"/><circle cx="110" cy="60" r="12" fill="none" stroke="#7a5420" stroke-width="1.5"/><circle cx="110" cy="60" r="5" fill="#1c0f08"/></g><g id="n2" opacity=".8"><circle cx="110" cy="60" r="20" fill="none" stroke="#7a5420" stroke-width="1.5"/><circle cx="110" cy="60" r="12" fill="none" stroke="#7a5420" stroke-width="1.5"/><circle cx="110" cy="60" r="5" fill="#1c0f08"/></g></svg>
+          <div class="word" id="mut-word">Mutação</div>
+          <div class="sub" id="mut-sub">2 recordes quebrados</div>
+          <div class="list" id="mut-list"></div>
+        </div>
+        <div class="skip">Toque para continuar</div>
+      </div>
+
+      <div class="scrim" id="scrim"></div>
+      <div class="sheet" id="sheet" role="dialog" aria-labelledby="sh-t">
+        <div class="fib"></div><i class="reg a"></i><i class="reg b"></i><i class="reg c"></i><i class="reg d"></i>
+        <div class="ex-tag" style="position:relative">Fim da leitura</div>
+        <h4 id="sh-t">Concluir treino?</h4>
+        <p>11 séries registradas, 38 min de sessão. O registro vai para o histórico e a próxima sugestão de carga sai daqui.</p>
+        <div class="grid2"><button class="btn" type="button" id="sh-no">Voltar</button><button class="btn primary" type="button" id="sh-ok">Concluir</button></div>
+      </div>
+
+      <div class="toast" id="toast" role="status"><i id="toast-i"></i><span id="toast-t"></span></div>
+    </div>
+    <div class="phone-cap"><span>390 × 844 · referência</span><span id="cap-state">repouso</span></div>
+  </div>
+
+  <main class="doc">
+    <h1>NerV · <span>Espécime</span><br>em Metabolismo</h1>
+    <p class="lede">Um sistema nervoso escaneando um organismo vivo, e o organismo é quem treina. A Máquina fala em osso: fria, precisa, monoespaçada. O Organismo fala em carne e calor. O vermelho é hemorragia e só aparece quando o descanso estoura. Toque no protótipo à vontade: as séries, as células, o descanso e o Concluir funcionam. A marca no topo é provisória até a arte da mesa chegar.</p>
+    <div class="ctls">
+      <button class="ctl" type="button" id="c-reset">Reiniciar cenário</button>
+      <button class="ctl" type="button" id="c-rm" aria-pressed="false">Movimento reduzido</button>
+      <button class="ctl" type="button" id="c-sedar" aria-pressed="false">Sedar</button>
+      <button class="ctl" type="button" id="c-som" aria-pressed="true">Som ligado</button>
+    </div>
+
+    <h2>Os nove movimentos</h2>
+    <p>Um coração só move o app inteiro. Os outros movimentos acontecem quando algo muda de estado. Nada se mexe só para enfeitar.</p>
+    <ul class="moves">
+      <li class="move"><span class="move-num">01</span><div><h3>Pulso</h3><p>Um batimento global (lub-dub) escreve <code>--beat</code> a cada quadro. A membrana respira, a marca estica, a célula da próxima série brilha e as veias pulsam no mesmo ritmo. O ritmo conta a história: 52 bpm em repouso, 88 treinando, sobe no fim do descanso, dispara quando ele estoura.</p><span class="spec">Contínuo · um laço só · para em segundo plano</span></div><button class="play" type="button" data-demo="pulse">Ver ritmos</button></li>
+      <li class="move"><span class="move-num">02</span><div><h3>Varredura</h3><p>Ao entrar numa tela, um feixe de osso desce e o conteúdo aparece conforme é lido.</p><span class="spec">560 ms · padrão</span></div><button class="play" type="button" data-demo="scan">Varrer</button></li>
+      <li class="move"><span class="move-num">03</span><div><h3>Leitura</h3><p>Quando um número muda por um evento (volume, séries, stats), os dígitos embaralham e estabilizam da esquerda para a direita, como um instrumento fechando a medição. O cronômetro não usa: ele só troca, para não virar ruído.</p><span class="spec">260 ms + 40 ms por caractere</span></div><button class="play" type="button" data-demo="read">Reler volume</button></li>
+      <li class="move"><span class="move-num">04</span><div><h3>Contração</h3><p>Tocar na célula: ela aperta, passa do ponto e volta, enquanto o ósteon se espalha de dentro para fora. Uma onda sai da célula, as fibras do card tensionam e o celular vibra curto. Reps vazio assume o alvo, como hoje.</p><span class="spec">320 ms · espasmo · vibração 15 ms · sem som</span></div><button class="play" type="button" data-demo="contract">Fechar próxima série</button></li>
+      <li class="move"><span class="move-num">05</span><div><h3>Impulso</h3><p>Logo depois da contração, uma faísca desce da célula fechada até a próxima, que ganha o anel de mira pulsando com o coração.</p><span class="spec">300 ms · padrão</span></div><button class="play" type="button" data-demo="impulse">Ver impulso</button></li>
+      <li class="move"><span class="move-num">06</span><div><h3>Encistamento</h3><p>Sucessor da TV de tubo. Fechou todas as séries, o card contrai até virar uma fenda, a fenda brilha em osso e sela numa cápsula com o ósteon. Tocar na cápsula reabre.</p><span class="spec">240 + 200 + 240 ms · pesada</span></div><button class="play" type="button" data-demo="cyst">Encistar Supino reto</button></li>
+      <li class="move"><span class="move-num">07</span><div><h3>Taquicardia</h3><p>O descanso é um eletro correndo na velocidade do coração. Nos últimos 5 s o ritmo sobe. No zero, um único som, e a barra vira hemorragia: as veias crescem das bordas da tela e pulsam cada vez mais rápido. Depois disso, a cobrança é só vibração.</p><span class="spec">Maquete: 8 s no lugar de 90 s</span></div><button class="play" type="button" data-demo="rest">Iniciar descanso</button></li>
+      <li class="move"><span class="move-num">08</span><div><h3>Mutação</h3><p>O recorde. A tela esquenta de baixo para cima por toda a rampa térmica até o branco, o ósteon se divide em dois e a palavra estica até o limite da fonte. Um acorde curto e vibração em padrão.</p><span class="spec">2,8 s · toque para pular</span></div><button class="play" type="button" data-demo="mut">Simular PR</button></li>
+      <li class="move"><span class="move-num">09</span><div><h3>Calor</h3><p>Em Stats, as barras sobem como imagem térmica: quanto mais alta, mais quente a cor que ela alcança. Os totais chegam pela Leitura.</p><span class="spec">600 ms · pesada · 50 ms entre barras</span></div><button class="play" type="button" data-demo="heat">Abrir Stats</button></li>
+    </ul>
+
+    <h2>Interface</h2>
+    <ul class="moves">
+      <li class="move"><span class="move-num">A</span><div><h3>Lâmina</h3><p>Janelas e confirmações sobem como uma lâmina deslizando sob a lente. As marcas de registro chegam de fora e travam nos cantos, como mira focando.</p><span class="spec">320 ms entrada · 200 ms saída · marcas 240 ms</span></div><button class="play" type="button" data-demo="sheet">Concluir treino</button></li>
+      <li class="move"><span class="move-num">B</span><div><h3>Aviso</h3><p>Uma tira impressa sai do topo, com o texto em Leitura.</p><span class="spec">200 ms · fica 2,4 s</span></div><button class="play" type="button" data-demo="toast">Mostrar aviso</button></li>
+      <li class="move"><span class="move-num">C</span><div><h3>Abertura</h3><p>Uma vez por carregamento: a membrana acende, a marca estica do condensado ao normal e o primeiro batimento acontece.</p><span class="spec">600 ms · pesada</span></div><button class="play" type="button" data-demo="intro">Repetir abertura</button></li>
+    </ul>
+
+    <h2>Som</h2>
+    <p>O app é usado com música tocando. Som só em dois momentos, curtos e sintetizados. Todo o resto é vibração e imagem.</p>
+    <table class="tbl">
+      <tr><th>Momento</th><th>Som</th><th>Vibração</th></tr>
+      <tr><td>Descanso chega a zero</td><td>Lub-dub grave com clique, uma vez (≈ 350 ms)</td><td><code>[200, 100, 300]</code></td></tr>
+      <tr><td>Mutação (PR)</td><td>Acorde curto que sobe (≈ 600 ms)</td><td><code>[60, 60, 60, 60, 220]</code></td></tr>
+      <tr><td>Cutucadas do descanso estourado (a cada 15 s)</td><td><b>Nenhum.</b> Hoje apita; passa a só vibrar</td><td><code>[120, 80, 200]</code></td></tr>
+      <tr><td>Série, encistamento, navegação, avisos</td><td>Nenhum</td><td>15–20 ms, só série e encistamento</td></tr>
+    </table>
+
+    <h2>Paleta</h2>
+    <p>Aprovada pela mesa: variante D3, Medula.</p>
+    <table class="tbl">
+      <tr><th>Token</th><th>Valor</th><th>Uso</th></tr>
+      <tr><td><span class="sw" style="background:#0C0709"></span><code>--flesh-0</code></td><td>#0C0709</td><td>Fundo</td></tr>
+      <tr><td><span class="sw" style="background:#170D11"></span><code>--flesh-1</code></td><td>#170D11</td><td>Cards (lâminas)</td></tr>
+      <tr><td><span class="sw" style="background:#24141A"></span><code>--flesh-2</code></td><td>#24141A</td><td>Campos, avisos, superfícies</td></tr>
+      <tr><td><span class="sw" style="background:#4A2530"></span><code>--vein</code></td><td>#4A2530</td><td>Linhas, estrias, tracejados</td></tr>
+      <tr><td><span class="sw" style="background:#EEE3CA"></span><code>--bone</code></td><td>#EEE3CA</td><td>Texto principal</td></tr>
+      <tr><td><span class="sw" style="background:#A8977A"></span><code>--bone-2</code></td><td>#A8977A</td><td>Texto secundário, contornos neutros</td></tr>
+      <tr><td><span class="sw" style="background:#D6B57A"></span><code>--osso</code> <code>-hi</code> <code>-lo</code></td><td>#D6B57A · #EEDAA9 · #94692C</td><td>A Máquina: ação, foco, mira, série feita, botão primário</td></tr>
+      <tr><td><span class="sw" style="background:linear-gradient(90deg,#2A1846,#7A1C5E,#D83A2E,#FF9A1F,#FFF2D2);width:40px"></span><code>--t1…t5</code></td><td>#2A1846 → #FFF2D2</td><td>O Organismo: volume, calor, gráficos, Mutação. Nunca interface</td></tr>
+      <tr><td><span class="sw" style="background:#FF2440"></span><code>--hemo</code></td><td>#FF2440</td><td>Só o descanso estourado</td></tr>
+    </table>
+
+    <h2>Regras</h2>
+    <ul class="rules">
+      <li><b>Textura em volta, nunca embaixo.</b> Todo texto senta numa superfície lisa com contraste AA. Grão, membrana e fibras ficam no fundo e nas bordas.</li>
+      <li><b>O ósteon é o osso.</b> Só elementos preenchidos (célula fechada, cápsula, botão primário) levam lamelas e lacunas. Contornos e texto são lisos.</li>
+      <li><b>Um coração, um laço.</b> Toda animação de ambiente lê <code>--beat</code>. Um único <code>requestAnimationFrame</code>, que para com a aba escondida e com Sedar.</li>
+      <li><b>Sedar</b> (o antigo FX) desliga pulso, membrana, feixe e Leitura. Contração, impulso, encistamento e a cobrança do descanso continuam, porque são resposta à ação.</li>
+      <li><b>Movimento reduzido</b> faz o mesmo que Sedar e troca deslocamentos e escalas por fades curtos. A cobrança fica parada, mas vermelha e escrita.</li>
+      <li><b>Nenhum estado depende só de cor ou de movimento.</b> Estourado tem rótulo, série feita tem número em osso e anel, PR tem texto.</li>
+      <li><b>Sem emoji.</b> Ícones em SVG de traço reto. O "X" de excluir vira ícone.</li>
+    </ul>
+  </main>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const root = document.documentElement;
+  const body = document.body;
+  const phone = $('#phone');
+  const mqRM = matchMedia('(prefers-reduced-motion: reduce)');
+  let forcedRM = false, sedated = false, soundOn = true;
+  const reduced = () => forcedRM || mqRM.matches;
+  const ambient = () => !reduced() && !sedated;
+  const vibrate = p => { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} };
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+  const fmtKg = n => Math.round(n).toLocaleString('pt-BR') + ' kg';
+  const pad = n => String(n).padStart(2, '0');
+  const mmss = s => pad(Math.floor(s / 60)) + ':' + pad(s % 60);
+
+  // ===== ósteon: corte de osso compacto, gerado uma vez com semente =====
+  function rng(seed) { return () => (seed = (seed * 16807) % 2147483647) / 2147483647; }
+  function osteon(seed) {
+    const r = rng(seed); let out = '<circle cx="50" cy="50" r="48" fill="url(#osG)"/>';
+    for (const R of [42, 34, 26, 18]) {
+      let d = ''; const n = 28;
+      for (let i = 0; i <= n; i++) {
+        const a = i / n * Math.PI * 2, rr = R + (r() - .5) * 2.4;
+        d += (i ? 'L' : 'M') + (50 + Math.cos(a) * rr).toFixed(1) + ' ' + (50 + Math.sin(a) * rr).toFixed(1);
+      }
+      out += '<path d="' + d + 'Z" fill="none" stroke="#7a5420" stroke-opacity=".55" stroke-width="1.6"/>';
+    }
+    for (let i = 0; i < 11; i++) {
+      const R = [38, 30, 22][i % 3] + (r() - .5) * 2, a = r() * Math.PI * 2;
+      const x = 50 + Math.cos(a) * R, y = 50 + Math.sin(a) * R, rot = a * 180 / Math.PI + 90;
+      out += '<g transform="translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ') rotate(' + rot.toFixed(0) + ')">' +
+        '<path d="M-5 -2l-3 -3M5 -2l3 -3M-4 2l-3 3M4 2l3 3M0 -2v-4M0 2v4" stroke="#5c3d14" stroke-opacity=".55" stroke-width=".7"/>' +
+        '<ellipse rx="4" ry="1.9" fill="#3b2410"/></g>';
+    }
+    out += '<circle cx="50" cy="50" r="8.5" fill="#1c0f08"/><circle cx="50" cy="50" r="8.5" fill="none" stroke="#5c3d14" stroke-width="2"/>';
+    out += '<circle cx="50" cy="50" r="47" fill="none" stroke="#94692C" stroke-width="2.5"/>';
+    return '<svg viewBox="0 0 100 100" aria-hidden="true">' + out + '</svg>';
+  }
+  const OS = [osteon(7), osteon(19), osteon(41), osteon(83)];
+
+  // ===== cenário =====
+  const SEED = () => ([
+    { nome: 'Supino reto com barra', series: 4, reps: '8-10', alvo: 10, intervalo: 120,
+      last: '60×10  60×10  60×9  57,5×9', prog: true,
+      sets: [[62.5, 10, 1], [62.5, 10, 1], [62.5, 9, 1], [60, '', 0]] },
+    { nome: 'Supino inclinado com halteres', series: 4, reps: '10-12', alvo: 12, intervalo: 90,
+      last: '24×12  24×12  24×11  24×10', prog: true,
+      sets: [[26, '', 0], [26, '', 0], [26, '', 0], [26, '', 0]] },
+    { nome: 'Crucifixo na máquina (voador)', series: 3, reps: '12-15', alvo: 15, intervalo: 60,
+      last: null, prog: false,
+      sets: [['', '', 0], ['', '', 0], ['', '', 0]] },
+  ].map(e => ({ ...e, cyst: false, sets: e.sets.map(([c, r, d]) => ({ carga: c, reps: r, done: !!d })) })));
+  let EX = SEED();
+  let sessionSec = 38 * 60 + 40;
+
+  // ===== 01 Pulso =====
+  let bpm = 52, bpmTarget = 52, phase = 0, last = performance.now(), beatOn = true;
+  const gauss = (x, m, s) => Math.exp(-((x - m) ** 2) / (2 * s * s));
+  function beatCurve(p) { return Math.max(gauss(p, .06, .035), .62 * gauss(p, .24, .04)); }
+  const ecgPath = $('#ecg path');
+  (function buildEcg() {
+    let d = 'M0 22'; const P = 78;
+    for (let x = 0; x < 780; x += P) d += ' H' + (x + 26) + ' l4 -4 4 4 H' + (x + 44) + ' l3 5 5 -21 6 26 4 -10 H' + (x + P);
+    ecgPath.setAttribute('d', d);
+  })();
+  let ecgX = 0;
+  function frame(t) {
+    const dt = Math.min(.1, (t - last) / 1000); last = t;
+    bpm += (bpmTarget - bpm) * Math.min(1, dt * 1.6);
+    phase = (phase + dt * bpm / 60) % 1;
+    const b = ambient() || restOver ? beatCurve(phase) : 0;
+    root.style.setProperty('--beat', b.toFixed(3));
+    if (restActive && !reduced()) {
+      ecgX = (ecgX + dt * bpm / 60 * 78) % 78;
+      $('#ecg').style.transform = 'translateX(' + (-ecgX).toFixed(1) + 'px)';
+    }
+    const shown = Math.round(bpm) + ' BPM';
+    if ($('#ro-bpm').textContent !== shown) { $('#ro-bpm').textContent = shown; $('#r-bpm').textContent = shown; }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  function setRhythm(target, label) { bpmTarget = target; if (label) { $('#ro-state').textContent = label; $('#cap-state').textContent = label.toLowerCase(); } }
+
+  // ===== 03 Leitura =====
+  const GLYPHS = '0123456789';
+  function read(el, text, animate = true) {
+    el.setAttribute('aria-label', text);
+    if (!animate || !ambient()) { el.textContent = text; return; }
+    const prev = el.textContent; el.textContent = '';
+    const spans = [...text].map((ch, i) => {
+      const s = document.createElement('span'); s.setAttribute('aria-hidden', 'true');
+      s.textContent = ch; el.appendChild(s);
+      if (ch === prev[i] || !/[0-9]/.test(ch)) return null;
+      return { s, ch, end: 260 + i * 40 };
+    }).filter(Boolean);
+    const t0 = performance.now();
+    (function step(t) {
+      let live = false;
+      for (const o of spans) {
+        if (t - t0 < o.end) { live = true; o.s.textContent = GLYPHS[(Math.random() * 10) | 0]; o.s.style.color = 'var(--osso)'; }
+        else { o.s.textContent = o.ch; o.s.style.color = ''; }
+      }
+      if (live) requestAnimationFrame(step); else el.textContent = text;
+    })(t0);
+  }
+
+  // ===== render da execução =====
+  const exs = $('#exs');
+  function exHTML(e, i) {
+    const sets = e.sets.map((s, j) => `
+      <div class="set${s.done ? ' done' : ''}" data-j="${j}">
+        <span class="n">S${j + 1}</span>
+        <label class="fld"><input inputmode="decimal" class="c" placeholder="carga" value="${s.carga}" aria-label="Carga série ${j + 1}"><span>KG</span></label>
+        <label class="fld"><input inputmode="numeric" class="r" placeholder="alvo ${e.reps.replace('-', '–')}" value="${s.reps}" aria-label="Repetições série ${j + 1}"><span>REPS</span></label>
+        <button class="cell" type="button" role="checkbox" aria-checked="${s.done}" aria-label="Fechar série ${j + 1}">
+          <span class="ring"></span><span class="nuc"></span><span class="os">${OS[(i + j) % 4]}</span>
+        </button>
+      </div>`).join('');
+    return `
+    <div class="ex${e.cyst ? ' cyst' : ''}" data-i="${i}">
+      <div class="slide">
+        <div class="fib"></div><i class="reg a"></i><i class="reg b"></i><i class="reg c"></i><i class="reg d"></i>
+        <div class="ex-tag">Amostra ${pad(i + 1)} · ${e.sets.every(s => s.done) ? 'lida' : 'em leitura'}</div>
+        <h3>${e.nome}</h3>
+        <div class="ex-sub">${e.series} × ${e.reps.replace('-', '–')} · descanso ${e.intervalo}s</div>
+        <div class="hint">${e.last ? 'última vez: <b>' + e.last + '</b>' + (e.prog ? '<span class="chip">+CARGA</span>' : '') : 'primeira leitura: registre para criar a referência'}</div>
+        <div class="sets">${sets}</div>
+        <button class="btn rest-btn" type="button" data-rest="${i}"><svg aria-hidden="true"><use href="#i-rest"/></svg>Descanso ${e.intervalo}s</button>
+      </div>
+      <button class="cap" type="button" aria-label="Reabrir ${e.nome}">
+        <span class="dot">${OS[i % 4]}</span><b>${e.nome}</b><span class="cap-meta"></span>
+      </button>
+    </div>`;
+  }
+  function renderEx() {
+    exs.innerHTML = EX.map(exHTML).join('');
+    EX.forEach((_, i) => { capMeta(i); markNext(i); });
+    progress(false);
+  }
+  const vol = sets => sets.filter(s => s.done).reduce((a, s) => a + (+s.carga || 0) * (+s.reps || 0), 0);
+  function capMeta(i) {
+    const e = EX[i], n = e.sets.filter(s => s.done).length;
+    const m = $(`.ex[data-i="${i}"] .cap-meta`); if (m) m.textContent = n + ' SÉRIES · ' + fmtKg(vol(e.sets)).toUpperCase();
+  }
+  function markNext(i) {
+    const card = $(`.ex[data-i="${i}"]`); if (!card) return;
+    $$('.set', card).forEach(r => r.classList.remove('next'));
+    const j = EX[i].sets.findIndex(s => !s.done);
+    if (j >= 0) $(`.set[data-j="${j}"]`, card).classList.add('next');
+    return j;
+  }
+  function progress(animate = true) {
+    const all = EX.reduce((a, e) => a + e.sets.length, 0), done = EX.reduce((a, e) => a + e.sets.filter(s => s.done).length, 0);
+    const v = EX.reduce((a, e) => a + vol(e.sets), 0);
+    read($('#p-sets'), done + ' / ' + all, animate);
+    read($('#p-vol'), fmtKg(v), animate);
+    const pct = Math.min(100, v / 6000 * 100);
+    $('#heat').style.setProperty('--heat', pct.toFixed(1) + '%');
+    $('#p-heat').textContent = pct < 25 ? 'frio' : pct < 60 ? 'aquecendo' : pct < 90 ? 'quente' : 'incandescente';
+    const cur = EX.findIndex(e => e.sets.some(s => !s.done));
+    $('#p-am').textContent = pad((cur < 0 ? EX.length - 1 : cur) + 1);
+  }
+
+  // ===== 04 Contração + 05 Impulso =====
+  async function toggleSet(i, j) {
+    const e = EX[i], s = e.sets[j], card = $(`.ex[data-i="${i}"]`), row = $(`.set[data-j="${j}"]`, card);
+    const cell = $('.cell', row);
+    s.done = !s.done;
+    if (s.done && !String(s.reps).trim()) { s.reps = e.alvo; const r = $('.r', row); r.value = s.reps; }
+    row.classList.toggle('done', s.done); cell.setAttribute('aria-checked', s.done);
+    if (s.done) {
+      vibrate(15);
+      if (!reduced()) {
+        cell.animate([{ transform: 'scale(1)' }, { transform: 'scale(.74)', offset: .28 }, { transform: 'scale(1.08)', offset: .7 }, { transform: 'scale(1)' }], { duration: 320, easing: 'ease-out' });
+        $('.os', cell).animate([{ clipPath: 'circle(0% at 50% 50%)' }, { clipPath: 'circle(75% at 50% 50%)' }], { duration: 260, delay: 70, easing: 'cubic-bezier(.5,1.6,.4,1)', fill: 'backwards' });
+        const rp = document.createElement('span'); rp.className = 'ripple'; cell.appendChild(rp);
+        rp.animate([{ transform: 'scale(1)', opacity: .8 }, { transform: 'scale(2.3)', opacity: 0 }], { duration: 460, delay: 90, easing: 'cubic-bezier(.2,0,0,1)' }).onfinish = () => rp.remove();
+        $('.slide', card).animate([{ transform: 'scaleY(1)' }, { transform: 'scaleY(.988)', offset: .35 }, { transform: 'scaleY(1)' }], { duration: 240, easing: 'ease-out' });
+        $('.fib', card).animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-7px) scaleX(.97)', offset: .35 }, { transform: 'translateX(0)' }], { duration: 300, easing: 'ease-out' });
+      } else {
+        $('.os', cell).animate([{ opacity: 0 }, { opacity: 1 }], { duration: 120 });
+      }
+      capMeta(i); progress(true);
+      const next = e.sets.findIndex(x => !x.done);
+      if (next >= 0) { await impulse(card, cell, $(`.set[data-j="${next}"] .cell`, card)); markNext(i); }
+      else { markNext(i); $('.ex-tag', card).textContent = 'Amostra ' + pad(i + 1) + ' · lida'; await wait(380); encist(i); }
+    } else {
+      capMeta(i); progress(true); markNext(i);
+      $('.ex-tag', card).textContent = 'Amostra ' + pad(i + 1) + ' · em leitura';
+    }
+  }
+  async function impulse(card, from, to) {
+    if (!to) return;
+    if (reduced()) return;
+    await wait(140);
+    const cr = card.getBoundingClientRect(), a = from.getBoundingClientRect(), b = to.getBoundingClientRect();
+    const sp = document.createElement('span'); sp.className = 'spark'; card.appendChild(sp);
+    const x0 = a.left + a.width / 2 - cr.left, y0 = a.top + a.height / 2 - cr.top;
+    const x1 = b.left + b.width / 2 - cr.left, y1 = b.top + b.height / 2 - cr.top;
+    sp.style.left = x0 + 'px'; sp.style.top = y0 + 'px';
+    await sp.animate([
+      { transform: 'translate(0,0) scale(.4)', opacity: 0 },
+      { transform: 'translate(0,0) scale(1)', opacity: 1, offset: .15 },
+      { transform: `translate(${x1 - x0}px, ${y1 - y0}px) scale(1)`, opacity: 1, offset: .85 },
+      { transform: `translate(${x1 - x0}px, ${y1 - y0}px) scale(2.2)`, opacity: 0 },
+    ], { duration: 300, easing: 'cubic-bezier(.2,0,0,1)' }).finished;
+    sp.remove();
+  }
+
+  // ===== 06 Encistamento =====
+  async function encist(i) {
+    const e = EX[i], card = $(`.ex[data-i="${i}"]`); if (!card || e.cyst || card.dataset.anim) return;
+    e.cyst = true; capMeta(i);
+    if (reduced()) {
+      card.classList.add('cyst');
+      card.animate([{ opacity: .3 }, { opacity: 1 }], { duration: 160 }); return;
+    }
+    card.dataset.anim = 1; vibrate(20);
+    const slide = $('.slide', card), h0 = card.offsetHeight;
+    const seal = document.createElement('span'); seal.className = 'seal'; card.appendChild(seal);
+    card.style.height = h0 + 'px';
+    await slide.animate([
+      { transform: 'scaleY(1)', filter: 'brightness(1)' },
+      { transform: 'scale(1.02, .03)', filter: 'brightness(2.6) sepia(.6)' },
+    ], { duration: 240, easing: 'cubic-bezier(.7,0,.2,1)', fill: 'forwards' }).finished;
+    seal.animate([{ opacity: 0, transform: 'scaleX(1)' }, { opacity: 1, transform: 'scaleX(1)', offset: .3 }, { opacity: 0, transform: 'scaleX(.05)' }], { duration: 300, easing: 'cubic-bezier(.4,0,1,1)' });
+    card.classList.add('cyst');
+    slide.getAnimations().forEach(a => a.cancel());
+    card.style.height = 'auto'; const h1 = card.offsetHeight; card.style.height = h0 + 'px';
+    await card.animate([{ height: h0 + 'px' }, { height: h1 + 'px' }], { duration: 200, easing: 'cubic-bezier(.2,0,0,1)' }).finished;
+    card.style.height = '';
+    const cap = $('.cap', card);
+    cap.animate([{ borderRadius: '2px', transform: 'scaleX(.9)', opacity: 0 }, { borderRadius: '22px 2px 22px 2px', transform: 'scaleX(1)', opacity: 1 }], { duration: 240, easing: 'cubic-bezier(.2,0,0,1)' });
+    $('.dot', cap).animate([{ transform: 'scale(0) rotate(-40deg)' }, { transform: 'scale(1.25) rotate(0)', offset: .7 }, { transform: 'scale(1)' }], { duration: 300, delay: 120, easing: 'ease-out', fill: 'backwards' });
+    seal.remove(); delete card.dataset.anim;
+  }
+  async function reopen(i) {
+    const e = EX[i], card = $(`.ex[data-i="${i}"]`); if (!card || !e.cyst || card.dataset.anim) return;
+    e.cyst = false;
+    if (reduced()) { card.classList.remove('cyst'); return; }
+    card.dataset.anim = 1; vibrate(20);
+    const h0 = card.offsetHeight; card.classList.remove('cyst');
+    const h1 = card.offsetHeight;
+    const slide = $('.slide', card);
+    card.style.overflow = 'hidden';
+    card.animate([{ height: h0 + 'px' }, { height: h1 + 'px' }], { duration: 260, easing: 'cubic-bezier(.2,0,0,1)' });
+    await slide.animate([{ transform: 'scaleY(.03)', filter: 'brightness(2.6) sepia(.6)' }, { transform: 'scaleY(1)', filter: 'brightness(1)' }], { duration: 300, easing: 'cubic-bezier(.2,0,0,1)' }).finished;
+    card.style.overflow = ''; delete card.dataset.anim;
+  }
+
+  // ===== 07 Taquicardia =====
+  let restActive = false, restOver = false, restLeft = 0, restTotal = 0, restTimer = null, nagAt = 15;
+  const restEl = $('#rest');
+  function startRest(i) {
+    const e = EX[i]; clearInterval(restTimer);
+    restTotal = 8; restLeft = 8; restActive = true; restOver = false; nagAt = 15;
+    restEl.classList.remove('over'); $('#veins').classList.remove('on'); clearVeins();
+    $('#r-tag').textContent = 'Descanso'; $('#r-who').textContent = e.nome.split(' ').slice(0, 2).join(' '); $('#r-skip').textContent = 'Pular';
+    $('#r-cnt').textContent = mmss(restLeft); $('#r-left').style.transform = 'scaleX(1)';
+    body.classList.add('resting'); setRhythm(88, 'Descanso');
+    restEl.classList.add('up');
+    restTimer = setInterval(restTick, 1000);
+  }
+  function restTick() {
+    restLeft--;
+    if (restLeft > 0) {
+      $('#r-cnt').textContent = mmss(restLeft);
+      $('#r-left').style.transition = reduced() ? 'none' : 'transform 1000ms linear';
+      $('#r-left').style.transform = 'scaleX(' + (restLeft / restTotal) + ')';
+      if (restLeft <= 5) setRhythm(88 + (6 - restLeft) * 6, 'Descanso acabando');
+      return;
+    }
+    const over = -restLeft;
+    if (!restOver) {
+      restOver = true; restEl.classList.add('over'); $('#r-tag').textContent = 'Estourado'; $('#r-skip').textContent = 'Voltar';
+      $('#r-left').style.transform = 'scaleX(1)';
+      growVeins(); $('#veins').classList.add('on');
+      sound('rest'); vibrate([200, 100, 300]);
+      if (!reduced()) $('.r1', restEl).animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-6px)' }, { transform: 'translateY(0)' }], { duration: 240, easing: 'ease-out' });
+    } else if (over >= nagAt && over <= 180) { nagAt += 15; vibrate([120, 80, 200]); }
+    $('#r-cnt').textContent = '+' + mmss(over);
+    setRhythm(Math.min(180, 124 + over * 2.2), 'Taquicardia');
+  }
+  function stopRest() {
+    clearInterval(restTimer); restActive = false; restOver = false;
+    $('#veins').classList.remove('on'); body.classList.remove('resting');
+    restEl.classList.remove('up');
+    setRhythm(currentView === 'treino' ? 88 : 52, currentView === 'treino' ? 'Sessão em leitura' : 'Organismo em repouso');
+  }
+  // Veias: galhos que crescem das bordas inferiores.
+  function clearVeins() { $('#vein-svg').innerHTML = ''; }
+  function growVeins() {
+    const r = rng(Date.now() % 100000 + 1), svg = $('#vein-svg'); let paths = '';
+    function branch(x, y, ang, len, w, depth) {
+      if (depth > 5 || len < 8) return;
+      let d = 'M' + x.toFixed(1) + ' ' + y.toFixed(1), cx = x, cy = y, a = ang;
+      const steps = 6;
+      for (let k = 0; k < steps; k++) { a += (r() - .5) * .5; cx += Math.cos(a) * len / steps; cy += Math.sin(a) * len / steps; d += ' L' + cx.toFixed(1) + ' ' + cy.toFixed(1); }
+      paths += `<path d="${d}" fill="none" stroke="#FF2440" stroke-opacity="${(.35 + .5 * w / 4).toFixed(2)}" stroke-width="${w.toFixed(2)}" stroke-linecap="round" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1" style="--d:${depth}"/>`;
+      const n = r() < .6 ? 2 : 1;
+      for (let k = 0; k < n; k++) branch(cx, cy, a + (r() - .5) * 1.4, len * (.55 + r() * .25), w * .62, depth + 1);
+    }
+    for (const [x, y, a] of [[0, 844, -1.2], [0, 700, -.4], [390, 844, -1.95], [390, 660, -2.7], [120, 844, -1.5], [280, 844, -1.7]]) branch(x, y, a, 120 + r() * 60, 3.2, 0);
+    svg.innerHTML = paths;
+    $$('path', svg).forEach(p => {
+      const d = +p.style.getPropertyValue('--d');
+      if (reduced()) { p.style.strokeDashoffset = 0; return; }
+      p.animate([{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], { duration: 500, delay: d * 220, easing: 'cubic-bezier(.2,0,0,1)', fill: 'forwards' });
+    });
+  }
+  $('#r-add').onclick = () => {
+    if (restOver) { restLeft = 30; restOver = false; restEl.classList.remove('over'); $('#veins').classList.remove('on'); $('#r-tag').textContent = 'Descanso'; $('#r-skip').textContent = 'Pular'; }
+    else restLeft += 30;
+    restTotal = Math.max(restTotal, restLeft); $('#r-cnt').textContent = mmss(restLeft); setRhythm(88, 'Descanso');
+  };
+  $('#r-skip').onclick = stopRest;
+
+  // ===== som: só dois momentos =====
+  let ac = null;
+  function sound(kind) {
+    if (!soundOn) return;
+    try {
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+      if (ac.state === 'suspended') ac.resume();
+      const t = ac.currentTime, out = ac.createGain(); out.gain.value = .5; out.connect(ac.destination);
+      const tone = (f, at, dur, type = 'sine', g = .6, f2) => {
+        const o = ac.createOscillator(), v = ac.createGain(); o.type = type;
+        o.frequency.setValueAtTime(f, t + at); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + at + dur);
+        v.gain.setValueAtTime(.0001, t + at); v.gain.exponentialRampToValueAtTime(g, t + at + .008); v.gain.exponentialRampToValueAtTime(.0001, t + at + dur);
+        o.connect(v); v.connect(out); o.start(t + at); o.stop(t + at + dur + .02);
+      };
+      if (kind === 'rest') { // lub-dub com clique
+        tone(190, 0, .16, 'sine', .9, 70); tone(1400, 0, .02, 'square', .12);
+        tone(160, .2, .14, 'sine', .6, 60); tone(1200, .2, .018, 'square', .08);
+      } else if (kind === 'mut') { // acorde que sobe
+        [220, 277, 330, 440].forEach((f, k) => tone(f, k * .05, .55, 'sawtooth', .12, f * 1.5));
+        tone(880, .18, .4, 'triangle', .15);
+      }
+    } catch (e) { /* sem áudio: a vibração cobre */ }
+  }
+
+  // ===== 08 Mutação =====
+  let mutOpen = false;
+  async function mutation(prs) {
+    if (mutOpen) return; mutOpen = true;
+    const m = $('#mut'), word = $('#mut-word'), heat = $('#mut-heat');
+    $('#mut-sub').textContent = prs.length ? prs.length + (prs.length > 1 ? ' recordes quebrados' : ' recorde quebrado') : 'Sessão registrada';
+    word.textContent = prs.length ? 'Mutação' : '+1';
+    $('#mut-list').innerHTML = prs.map(p => `<div>${p.nome.toUpperCase()} · <b>${p.v}</b></div>`).join('');
+    m.classList.add('on'); vibrate(prs.length ? [60, 60, 60, 60, 220] : 120);
+    if (prs.length) sound('mut');
+    const prevBpm = bpmTarget; setRhythm(prs.length ? 168 : 120, prs.length ? 'Mutação' : 'Sessão registrada');
+    if (reduced()) {
+      heat.style.backgroundPosition = '0 50%'; m.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 160 });
+    } else {
+      heat.animate([{ backgroundPosition: '0 -100%', opacity: 1 }, { backgroundPosition: '0 0%', opacity: 1, offset: .45 }, { backgroundPosition: '0 0%', opacity: 1, offset: .55 }, { backgroundPosition: '0 70%', opacity: .7 }], { duration: 1400, easing: 'cubic-bezier(.7,0,.2,1)', fill: 'forwards' });
+      m.animate([{ backgroundColor: '#0C0709' }, { backgroundColor: '#FFF2D2', offset: .5 }, { backgroundColor: '#0C0709' }], { duration: 1400, easing: 'ease-in-out' });
+      word.animate([{ fontStretch: '50%', letterSpacing: '.3em', opacity: 0 }, { fontStretch: '128%', letterSpacing: '0em', opacity: 1, offset: .55 }, { fontStretch: '72%', letterSpacing: '.01em', opacity: 1 }], { duration: 900, delay: 300, easing: 'cubic-bezier(.2,0,0,1)', fill: 'both' });
+      word.animate([{ color: '#1A0E0A' }, { color: '#1A0E0A', offset: .4 }, { color: '#EEE3CA' }], { duration: 1300 });
+      const c1 = $('#c1'), c2 = $('#c2');
+      [['#n1', -46], ['#n2', 46]].forEach(([id, dx]) => $(id).animate([{ transform: 'translateX(0)' }, { transform: 'translateX(0)', offset: .3 }, { transform: `translateX(${dx}px)` }], { duration: 1300, delay: 400, easing: 'cubic-bezier(.5,1.4,.4,1)', fill: 'both' }));
+      c1.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(0)', offset: .3 }, { transform: 'translateX(-46px)' }], { duration: 1300, delay: 400, easing: 'cubic-bezier(.5,1.4,.4,1)', fill: 'both' });
+      c2.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(0)', offset: .3 }, { transform: 'translateX(46px)' }], { duration: 1300, delay: 400, easing: 'cubic-bezier(.5,1.4,.4,1)', fill: 'both' });
+      $$('#mut-list div').forEach((d, k) => d.animate([{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 240, delay: 1100 + k * 120, fill: 'backwards', easing: 'cubic-bezier(.2,0,0,1)' }));
+    }
+    const close = () => {
+      if (!mutOpen) return; mutOpen = false; clearTimeout(tm);
+      const fin = () => { m.classList.remove('on'); m.getAnimations({ subtree: true }).forEach(a => a.cancel()); };
+      if (reduced()) fin(); else m.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, easing: 'cubic-bezier(.4,0,1,1)' }).onfinish = fin;
+      setRhythm(prevBpm > 100 ? 88 : prevBpm, 'Sessão em leitura');
+    };
+    const tm = setTimeout(close, prs.length ? 2800 : 1400);
+    m.onclick = close;
+  }
+
+  // ===== A Lâmina =====
+  let lastFocus = null;
+  function openSheet() {
+    lastFocus = document.activeElement;
+    const s = $('#sheet'), sc = $('#scrim'); s.style.display = 'block'; sc.style.display = 'block';
+    if (!reduced()) {
+      sc.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200 });
+      s.animate([{ transform: 'translateY(100%)' }, { transform: 'translateY(0)' }], { duration: 320, easing: 'cubic-bezier(.2,0,0,1)' });
+      const off = { a: '-14px,-14px', b: '14px,-14px', c: '-14px,14px', d: '14px,14px' };
+      $$('.reg', s).forEach(r => { const k = [...r.classList].find(c => off[c]); r.animate([{ transform: `translate(${off[k]})`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 240, delay: 140, easing: 'cubic-bezier(.5,1.6,.4,1)', fill: 'backwards' }); });
+    } else s.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 120 });
+    $('#sh-t').setAttribute('tabindex', '-1'); $('#sh-t').focus({ preventScroll: true });
+  }
+  function closeSheet(after) {
+    const s = $('#sheet'), sc = $('#scrim');
+    const fin = () => { s.style.display = 'none'; sc.style.display = 'none'; lastFocus && lastFocus.focus && lastFocus.focus(); after && after(); };
+    if (reduced()) return fin();
+    sc.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200 });
+    s.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(100%)' }], { duration: 200, easing: 'cubic-bezier(.4,0,1,1)' }).onfinish = fin;
+  }
+  $('#btn-fim').onclick = openSheet;
+  $('#sh-no').onclick = () => closeSheet();
+  $('#scrim').onclick = () => closeSheet();
+  $('#sh-ok').onclick = () => closeSheet(() => { stopRest(); mutation([{ nome: 'Supino reto', v: '62,5 KG' }, { nome: 'Supino inclinado', v: '1RM 35,4 KG' }]); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('#sheet').style.display === 'block') closeSheet(); });
+
+  // ===== B Aviso =====
+  let toastT = null;
+  function toast(text) {
+    const t = $('#toast'); clearTimeout(toastT);
+    $('#toast-i').innerHTML = OS[2]; t.style.display = 'flex';
+    read($('#toast-t'), text, true);
+    if (!reduced()) t.animate([{ transform: 'translateY(-100%)' }, { transform: 'none' }], { duration: 200, easing: 'cubic-bezier(.2,0,0,1)' });
+    toastT = setTimeout(() => {
+      const fin = () => { t.style.display = 'none'; };
+      if (reduced()) fin(); else t.animate([{ transform: 'none' }, { transform: 'translateY(-100%)' }], { duration: 200, easing: 'cubic-bezier(.4,0,1,1)' }).onfinish = fin;
+    }, 2400);
+  }
+
+  // ===== navegação + 02 Varredura =====
+  let currentView = 'fichas';
+  function go(view, animate = true) {
+    currentView = view;
+    $$('.screen').forEach(s => s.hidden = s.id !== 'v-' + view);
+    $('#scroll').scrollTop = 0;
+    $('#ro-where').textContent = view === 'treino' ? 'Amostra A' : view === 'stats' ? 'Leitura' : 'Lâmina 01';
+    if (!restActive) setRhythm(view === 'treino' ? 88 : 52, view === 'treino' ? 'Sessão em leitura' : view === 'stats' ? 'Histórico em leitura' : 'Organismo em repouso');
+    if (animate) scan();
+    if (view === 'stats') heatChart(animate);
+  }
+  function scan() {
+    const sc = $('#scroll'), beam = $('#beam');
+    if (!ambient()) { if (reduced()) sc.animate([{ opacity: .3 }, { opacity: 1 }], { duration: 120 }); return; }
+    sc.animate([{ clipPath: 'inset(0 0 100% 0)' }, { clipPath: 'inset(0 0 0% 0)' }], { duration: 560, easing: 'cubic-bezier(.2,0,0,1)' });
+    beam.animate([{ transform: 'translateY(0)', opacity: 1 }, { transform: 'translateY(762px)', opacity: 1, offset: .92 }, { transform: 'translateY(762px)', opacity: 0 }], { duration: 560, easing: 'cubic-bezier(.2,0,0,1)' });
+  }
+  phone.addEventListener('click', e => {
+    const g = e.target.closest('[data-go]'); if (g) { go(g.dataset.go); return; }
+    if (e.target.closest('#btn-stats')) { go('stats'); return; }
+    const cell = e.target.closest('.cell');
+    if (cell) { const i = +cell.closest('.ex').dataset.i, j = +cell.closest('.set').dataset.j; toggleSet(i, j); return; }
+    const cap = e.target.closest('.cap'); if (cap) { reopen(+cap.closest('.ex').dataset.i); return; }
+    const rb = e.target.closest('[data-rest]'); if (rb) { startRest(+rb.dataset.rest); return; }
+    if (e.target.closest('#btn-nova')) toast('Nova ficha: abriria a lâmina de cadastro');
+  });
+  phone.addEventListener('input', e => {
+    const row = e.target.closest('.set'); if (!row) return;
+    const i = +row.closest('.ex').dataset.i, s = EX[i].sets[+row.dataset.j];
+    if (e.target.classList.contains('c')) s.carga = e.target.value.replace(',', '.'); else s.reps = e.target.value;
+  });
+
+  // ===== 09 Calor =====
+  const WEEKS = [2, 3, 3, 4, 2, 5, 4, 6];
+  function heatChart(animate) {
+    const ch = $('#chart'), max = 6;
+    ch.innerHTML = WEEKS.map((v, k) => `<div class="col"><em class="rd">${v}</em><i style="height:${(v / max * 152).toFixed(0)}px"></i><small>S${k + 1}</small></div>`).join('');
+    $$('.stat .v').forEach(v => read(v, v.dataset.v, animate));
+    if (!animate || reduced()) return;
+    $$('.col i', ch).forEach((b, k) => b.animate([{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }], { duration: 600, delay: 120 + k * 50, easing: 'cubic-bezier(.7,0,.2,1)', fill: 'backwards' }));
+    $$('.col em', ch).forEach((b, k) => b.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, delay: 600 + k * 50, fill: 'backwards' }));
+  }
+
+  // ===== C Abertura =====
+  function intro() {
+    if (!ambient()) return;
+    $('.membrane').animate([{ opacity: 0 }, { opacity: .5 }], { duration: 600, easing: 'cubic-bezier(.7,0,.2,1)' });
+    $('.wm').animate([{ fontStretch: '50%', opacity: 0 }, { fontStretch: '125%', opacity: 1 }], { duration: 600, easing: 'cubic-bezier(.7,0,.2,1)' });
+    phase = .98;
+    scan();
+  }
+
+  // ===== relógio da sessão =====
+  setInterval(() => { sessionSec++; $('#clock-t').textContent = mmss(sessionSec % 3600) ; }, 1000);
+
+  // ===== controles =====
+  function setSedar(v) {
+    sedated = v; body.classList.toggle('sedated', v);
+    $('#btn-sedar').setAttribute('aria-pressed', v); $('#c-sedar').setAttribute('aria-pressed', v);
+    toast(v ? 'Sedado: ambiente desligado' : 'Organismo acordado');
+  }
+  $('#btn-sedar').onclick = () => setSedar(!sedated);
+  $('#c-sedar').onclick = () => setSedar(!sedated);
+  $('#c-rm').onclick = e => { forcedRM = !forcedRM; body.classList.toggle('rm', forcedRM); e.currentTarget.setAttribute('aria-pressed', forcedRM); };
+  $('#c-som').onclick = e => { soundOn = !soundOn; e.currentTarget.setAttribute('aria-pressed', soundOn); e.currentTarget.textContent = soundOn ? 'Som ligado' : 'Som desligado'; };
+  function reset() {
+    stopRest(); EX = SEED(); sessionSec = 38 * 60 + 40; renderEx(); go('fichas', false); intro();
+  }
+  $('#c-reset').onclick = reset;
+
+  const DEMOS = {
+    pulse: async () => {
+      go('fichas'); setRhythm(52, 'Organismo em repouso'); toast('52 bpm · repouso'); await wait(2600);
+      setRhythm(88, 'Sessão em leitura'); toast('88 bpm · treinando'); await wait(2600);
+      setRhythm(150, 'Taquicardia'); toast('150 bpm · descanso estourado'); await wait(2800);
+      setRhythm(52, 'Organismo em repouso');
+    },
+    scan: () => go(currentView),
+    read: () => { if (currentView !== 'treino') go('treino'); setTimeout(() => { $('#p-vol').textContent = '0 kg'; progress(true); }, 600); },
+    contract: () => {
+      if (currentView !== 'treino') go('treino');
+      setTimeout(() => {
+        let i = EX.findIndex(e => !e.cyst && e.sets.some(s => !s.done)); if (i < 0) { reset(); go('treino'); i = 0; }
+        const j = EX[i].sets.findIndex(s => !s.done);
+        const card = $(`.ex[data-i="${i}"]`); card.scrollIntoView({ block: 'center', behavior: reduced() ? 'auto' : 'smooth' });
+        setTimeout(() => toggleSet(i, j), 450);
+      }, currentView === 'treino' ? 0 : 700);
+    },
+    impulse: () => DEMOS.contract(),
+    cyst: () => {
+      if (currentView !== 'treino') go('treino');
+      setTimeout(() => {
+        if (EX[0].cyst) { reopen(0); return; }
+        const j = EX[0].sets.findIndex(s => !s.done);
+        $('.ex[data-i="0"]').scrollIntoView({ block: 'center', behavior: reduced() ? 'auto' : 'smooth' });
+        setTimeout(() => j >= 0 ? toggleSet(0, j) : encist(0), 450);
+      }, currentView === 'treino' ? 0 : 700);
+    },
+    rest: () => { if (currentView !== 'treino') go('treino'); startRest(1); },
+    mut: () => { stopRest(); mutation([{ nome: 'Supino reto', v: '62,5 KG' }, { nome: 'Supino inclinado', v: '1RM 35,4 KG' }]); },
+    heat: () => go('stats'),
+    sheet: () => { if (currentView !== 'treino') { go('treino'); setTimeout(openSheet, 650); } else openSheet(); },
+    toast: () => toast('Ficha importada: 4 amostras, 25 exercícios'),
+    intro,
+  };
+  $$('[data-demo]').forEach(b => b.onclick = () => DEMOS[b.dataset.demo]());
+
+  // A moldura nunca rola: foco e scrollIntoView não podem deslocar as camadas fixas.
+  phone.addEventListener('scroll', () => { phone.scrollTop = 0; phone.scrollLeft = 0; });
+  document.addEventListener('visibilitychange', () => { last = performance.now(); });
+  renderEx(); go('fichas', false); intro();
+})();
+</script>
+</body>
+</html>
