@@ -14,8 +14,8 @@ export function screenAjustes(params, el) {
     .sort((a, b) => new Date(a.date) - new Date(b.date))[0];
 
   el.innerHTML =
-    '<div class="back" id="back">' + ICON.back + 'Voltar</div>' +
-    '<h2>AJUSTES</h2>' +
+    '<div class="back" id="back" role="link" tabindex="0">' + ICON.back + 'Voltar</div>' +
+    '<h2>Ajustes</h2>' +
 
     '<div class="card"><h3>Seus dados</h3>' +
       '<div class="card-sub" style="line-height:2;">' +
@@ -24,8 +24,8 @@ export function screenAjustes(params, el) {
         (primeira ? 'desde ' + fmtDate(primeira.date) : 'nenhum registro ainda') +
       '</div>' +
       '<div class="hint" style="margin-top:12px;">Tudo fica gravado só neste aparelho. Limpar os dados do navegador apaga o histórico — exporte um backup de vez em quando.</div>' +
-      '<button class="btn btn-primary btn-small" id="btnExport" style="width:100%;margin-top:8px;">' + ICON.down + 'EXPORTAR BACKUP</button>' +
-      '<button class="btn btn-secondary btn-small" id="btnImport" style="width:100%;margin-top:8px;">' + ICON.import + 'RESTAURAR BACKUP</button>' +
+      '<button class="btn btn-primary btn-small" id="btnExport" style="width:100%;margin-top:8px;">' + ICON.down + 'Exportar backup</button>' +
+      '<button class="btn btn-small" id="btnImport" style="width:100%;margin-top:8px;">' + ICON.import + 'Restaurar backup</button>' +
       '<input type="file" class="hidden-file" id="importFile" accept="application/json,.json" />' +
     '</div>' +
 
@@ -37,24 +37,26 @@ export function screenAjustes(params, el) {
       '</div>' +
       '<div class="hint" style="margin-top:8px;">Forçar atualização limpa o cache e reinstala o app. ' +
         '<b>Suas fichas e seu histórico não são apagados</b> — só os arquivos do programa.</div>' +
-      '<button class="btn btn-primary btn-small" id="btnForce" style="width:100%;">FORÇAR ATUALIZAÇÃO</button>' +
-      '<button class="btn btn-secondary btn-small" id="btnUpdate" style="width:100%;margin-top:8px;">PROCURAR ATUALIZAÇÃO</button>' +
+      '<button class="btn btn-primary btn-small" id="btnForce" style="width:100%;">Forçar atualização</button>' +
+      '<button class="btn btn-small" id="btnUpdate" style="width:100%;margin-top:8px;">Procurar atualização</button>' +
     '</div>' +
 
     '<div class="card"><h3>Zona de risco</h3>' +
       '<div class="hint">Apaga fichas, treinos e histórico deste aparelho. Não tem como desfazer.</div>' +
-      '<button class="btn btn-danger btn-small" id="btnWipe" style="width:100%;">APAGAR TUDO</button>' +
+      '<button class="btn btn-danger btn-small" id="btnWipe" style="width:100%;">Apagar tudo</button>' +
     '</div>' +
 
     '<div class="card"><h3>Sobre</h3>' +
       '<div class="card-sub" style="line-height:2;">' +
-        'NERv2 — Neural Engine Routine<br>' +
+        'NerV — Neural Engine Routine<br>' +
         'funciona 100% offline<br>' +
         '<span id="netState">—</span>' +
       '</div>' +
     '</div>';
 
-  el.querySelector('#back').onclick = back;
+  const voltar = el.querySelector('#back');
+  voltar.onclick = back;
+  voltar.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); back(); } };
   el.querySelector('#appVer').textContent = (window.__NERV_VERSION__ || 'dev');
   pintarVersaoSW(el);
   pintarRede(el);
@@ -63,7 +65,7 @@ export function screenAjustes(params, el) {
 
   el.querySelector('#btnExport').onclick = () => {
     const stamp = new Date().toISOString().slice(0, 10);
-    downloadFile('nerv2-backup-' + stamp + '.json', exportJSON());
+    downloadFile('nerv-backup-' + stamp + '.json', exportJSON());
     toast('Backup gerado', 'ok');
   };
 
@@ -80,15 +82,15 @@ export function screenAjustes(params, el) {
       body: '<div class="hint">Juntar mantém o que já existe neste aparelho e só acrescenta o que falta. ' +
             'Substituir apaga tudo o que está aqui e usa apenas o backup.</div>',
       buttons: [
-        { label: 'JUNTAR', cls: 'btn-primary', value: 'ok', onClick() { modo = 'merge'; } },
-        { label: 'SUBSTITUIR TUDO', cls: 'btn-danger', value: 'ok', onClick() { modo = 'replace'; } },
-        { label: 'CANCELAR', cls: 'btn-ghost', value: null },
+        { label: 'Juntar', cls: 'btn-primary', value: 'ok', onClick() { modo = 'merge'; } },
+        { label: 'Substituir tudo', cls: 'btn-danger', value: 'ok', onClick() { modo = 'replace'; } },
+        { label: 'Cancelar', cls: 'btn-secondary', value: null },
       ],
     });
     if (v !== 'ok' || !modo) return;
 
     if (modo === 'replace' &&
-        !await confirmDialog('Substituir tudo?', 'Seus dados atuais neste aparelho serão apagados.', 'SUBSTITUIR')) return;
+        !await confirmDialog('Substituir tudo?', 'Seus dados atuais neste aparelho serão apagados.', 'Substituir')) return;
 
     try {
       const r = importJSON(texto, modo);
@@ -101,19 +103,19 @@ export function screenAjustes(params, el) {
 
   el.querySelector('#btnWipe').onclick = async () => {
     if (!await confirmDialog('Apagar tudo?',
-      'Fichas, treinos e todo o histórico deste aparelho serão apagados definitivamente.', 'APAGAR TUDO')) return;
+      'Fichas, treinos e todo o histórico deste aparelho serão apagados definitivamente.', 'Apagar tudo')) return;
     const ok = await modal({
       title: 'Tem certeza mesmo?',
       body: '<div class="hint">Se ainda não exportou um backup, cancele agora e exporte primeiro.</div>' +
             '<label>Digite APAGAR para confirmar</label><input id="inpWipe" placeholder="APAGAR" />',
       buttons: [
-        { label: 'APAGAR DEFINITIVAMENTE', cls: 'btn-danger', value: 'ok', onClick(ov) {
+        { label: 'Apagar definitivamente', cls: 'btn-danger', value: 'ok', onClick(ov) {
           if (ov.querySelector('#inpWipe').value.trim().toUpperCase() !== 'APAGAR') {
             modalError('Digite APAGAR exatamente.');
             return false;
           }
         } },
-        { label: 'CANCELAR', cls: 'btn-ghost', value: null },
+        { label: 'Cancelar', cls: 'btn-secondary', value: null },
       ],
     });
     if (ok !== 'ok') return;
@@ -143,7 +145,7 @@ export function screenAjustes(params, el) {
   el.querySelector('#btnForce').onclick = async () => {
     if (!await confirmDialog('Forçar atualização?',
       'O cache e o service worker deste aparelho serão apagados e o app vai recarregar do zero. ' +
-      'Suas fichas, treinos e histórico NÃO serão apagados.', 'FORÇAR', false)) return;
+      'Suas fichas, treinos e histórico NÃO serão apagados.', 'Forçar', false)) return;
     toast('Limpando cache…');
     // A função mora no index.html — que é o arquivo mais recente que o
     // aparelho tem — justamente para funcionar mesmo com o js/ desatualizado.
@@ -180,7 +182,7 @@ function pintarVersaoSW(el) {
     alvo.textContent = v;
     // 'nerv2-v2.1.0' precisa terminar com a versão do app, '2.1.0'.
     if (aviso && !v.endsWith(window.__NERV_VERSION__ || '')) {
-      aviso.innerHTML = '<span style="color:var(--red);">o cache ficou para trás — force a atualização</span>';
+      aviso.innerHTML = '<span style="color:var(--hemo);">o cache ficou para trás — force a atualização</span>';
     }
   };
   try { sw.postMessage({ type: 'version' }, [canal.port2]); }

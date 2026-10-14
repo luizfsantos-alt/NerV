@@ -5,6 +5,7 @@ import { escapeHtml, fmtDuration, fmtDateShort, startOfWeek, volumeOfSets, repsT
 import { ICON } from '../ui.js';
 import { allPRs, weekStreak } from '../progress.js';
 import { back } from '../router.js';
+import { read, motionOK } from '../fx.js';
 
 export function screenStats(params, el) {
   const w = state.workoutHistory, c = state.cardioHistory;
@@ -14,10 +15,10 @@ export function screenStats(params, el) {
     a + ex.sets.reduce((b, set) => b + repsToNumber(set.reps), 0), 0), 0);
   const totalKm = c.reduce((s, h) => s + h.distance, 0);
 
-  let html = '<div class="back" id="back">' + ICON.back + 'Voltar</div><h2>STATS</h2>';
+  let html = '<div class="back" id="back" role="link" tabindex="0">' + ICON.back + 'Voltar</div><h2>Stats</h2>';
 
   if (!w.length && !c.length) {
-    html += '<div class="empty">Sem dados ainda.<br>Conclua um treino para ver seus números.</div>';
+    html += '<div class="empty">Nada para ler ainda.<br>Conclua um treino para ver seus números.</div>';
     el.innerHTML = html;
     el.querySelector('#back').onclick = back;
     return;
@@ -27,23 +28,27 @@ export function screenStats(params, el) {
   html += card(w.length + c.length, 'Sessões');
   // Antes isto era fmtTime() e virava "1247:33" depois de algumas semanas.
   html += card(fmtDuration(totalTime), 'Tempo total');
-  html += card(totalVol >= 1000 ? (totalVol / 1000).toFixed(1) + 't' : Math.round(totalVol), 'Volume');
+  html += card(totalVol >= 1000 ? (totalVol / 1000).toFixed(1).replace('.', ',') + 't' : Math.round(totalVol), 'Volume', true);
   html += card(Math.round(totalReps), 'Repetições');
-  html += card(totalKm.toFixed(1), 'Cardio km');
+  html += card(totalKm.toFixed(1).replace('.', ','), 'Cardio km');
   html += card(weekStreak(), 'Semanas seguidas');
   html += '</div>';
 
-  html += '<div class="card" style="margin-top:16px;"><h3>Atividade — 8 semanas</h3><div class="chart" id="chart"></div></div>';
-  html += '<div class="card"><h3>Treino favorito</h3>' + favoritos() + '</div>';
-  html += '<div class="card"><h3>Recordes Pessoais</h3>' + prs() + '</div>';
+  html += '<div class="card"><div class="card-tag">Calor</div><h3>Sessões por semana</h3><div class="chart" id="chart"></div></div>';
+  html += '<div class="card"><div class="card-tag">Frequência</div><h3>Treino favorito</h3>' + favoritos() + '</div>';
+  html += '<div class="card"><div class="card-tag">Recordes</div><h3>Recordes pessoais</h3>' + prs() + '</div>';
 
   el.innerHTML = html;
-  el.querySelector('#back').onclick = back;
+  const voltar = el.querySelector('#back');
+  voltar.onclick = back;
+  voltar.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); back(); } };
+  // Os totais chegam pela Leitura.
+  el.querySelectorAll('.stat-value').forEach(v => { const t = v.textContent; v.textContent = ''; read(v, t); });
   desenharGrafico(el.querySelector('#chart'));
 }
 
-function card(v, label) {
-  return '<div class="stat-card"><div class="stat-value">' + escapeHtml(String(v)) +
+function card(v, label, hot = false) {
+  return '<div class="stat-card"><div class="stat-value' + (hot ? ' hot' : '') + '">' + escapeHtml(String(v)) +
     '</div><div class="stat-label">' + label + '</div></div>';
 }
 
@@ -54,7 +59,7 @@ function favoritos() {
   if (!ord.length) return '<div class="empty">Sem treinos registrados.</div>';
   return ord.map(([nome, n]) =>
     '<div class="pr-row"><span>' + escapeHtml(nome) + '</span>' +
-    '<span style="color:var(--red);font-weight:700;">' + n + '×</span></div>'
+    '<span class="v">' + n + '×</span></div>'
   ).join('');
 }
 
@@ -65,7 +70,7 @@ function prs() {
     '<div class="pr-row">' +
       '<span>#' + (i + 1) + ' ' + escapeHtml(p.nome) + '</span>' +
       '<span style="text-align:right;">' +
-        '<span style="color:var(--red);font-weight:700;">' + p.carga + ' kg</span>' +
+        '<span class="v">' + p.carga + ' kg</span>' +
         (p.e1rm > p.carga ? '<br><span class="pr-1rm">1RM ~' + p.e1rm.toFixed(1) + ' kg</span>' : '') +
       '</span>' +
     '</div>'
@@ -92,12 +97,19 @@ function desenharGrafico(chart) {
   state.workoutHistory.forEach(contar);
   state.cardioHistory.forEach(contar);
 
+  // Calor (09): as barras sobem como imagem térmica; quanto mais alta, mais
+  // quente a cor que ela alcança (o gradiente é fixo na altura do gráfico).
   const max = Math.max(1, ...semanas.map(s => s.count));
   chart.innerHTML = semanas.map(s =>
-    '<div class="bar' + (s.count ? '' : ' empty-bar') + '" style="height:' +
-      Math.max(4, (s.count / max) * 100) + '%">' +
-      (s.count ? '<div class="bar-count">' + s.count + '</div>' : '') +
-      '<div class="bar-label">' + fmtDateShort(s.start) + '</div>' +
+    '<div class="col' + (s.count ? '' : ' empty-col') + '">' +
+      '<em>' + (s.count || '') + '</em>' +
+      '<i style="height:' + Math.max(2, s.count / max * 152).toFixed(0) + 'px"></i>' +
+      '<small>' + fmtDateShort(s.start) + '</small>' +
     '</div>'
   ).join('');
+  if (!motionOK()) return;
+  chart.querySelectorAll('.col i').forEach((b, k) => b.animate([{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }],
+    { duration: 600, delay: 120 + k * 50, easing: 'cubic-bezier(.7,0,.2,1)', fill: 'backwards' }));
+  chart.querySelectorAll('.col em').forEach((b, k) => b.animate([{ opacity: 0 }, { opacity: 1 }],
+    { duration: 200, delay: 600 + k * 50, fill: 'backwards' }));
 }

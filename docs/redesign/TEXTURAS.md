@@ -15,8 +15,15 @@ Para mudar cor, contraste ou tamanho, edite e rode `python3 texturas/processar.p
 
 ## Rodada 2: células em divisão
 
-O ósteon saiu. A série passa a ser uma célula que se divide ao ser fechada. O contorno e a divisão são animados em código, e as imagens entram como **preenchimento**.
-Gere 2 variações de cada e mande aqui no chat, como da outra vez.
+O ósteon saiu. A série passa a ser uma célula que se divide ao ser fechada.
+
+**Situação:** geradas e aplicadas no app (`assets/tex/`). As imagens ficaram boas o bastante para entrar inteiras, e não só como preenchimento:
+- `celula.jpg` → célula em repouso (série pendente e próxima) e início da Mutação;
+- `mitose-1.jpg` → série fechada, cápsula, aviso, fim da Mutação e **ícone do app**;
+- `cromossomos-1.jpg` → placa metafásica que acende na Mutação, antes da divisão;
+- `nucleo-2.jpg` → telas vazias.
+
+Guardadas sem uso, para variações futuras: `mitose-2.jpg`, `cromossomos-2.jpg`, `nucleo-1.jpg`.
 
 | # | Recurso | Onde entra | Formato | Prioridade |
 |---|---------|-----------|---------|------------|

@@ -59,6 +59,9 @@ def sem_emenda_fibra(a):
 def salva(a, nome, q):
     img = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8))
     img.save(AQUI / nome, 'WEBP', quality=q, method=6)
+    if nome != 'osteon.webp':   # o ósteon saiu do app; fica só na maquete
+        (AQUI.parents[2] / 'assets' / 'tex').mkdir(parents=True, exist_ok=True)
+        img.save(AQUI.parents[2] / 'assets' / 'tex' / nome, 'WEBP', quality=q, method=6)
     print(f'{nome:16} {img.size[0]}x{img.size[1]}  {(AQUI / nome).stat().st_size // 1024} KB')
 
 
@@ -103,6 +106,64 @@ salva(rampa(t, ['#000000', '#3a0610', '#a3142a', '#FF2440', '#FFB3BC']), 'veias.
 a = sem_emenda(carrega('osso.jpg', (688, 384)))
 t = normaliza(luma(a), 1, 99)
 salva(rampa(t, ['#c09a5c', '#d2b077', '#dfc28d', '#ead1a2']), 'osso.webp', 74)
+
+# ===== Rodada 2: células em divisão (vão direto para o app, em assets/) =====
+APP = AQUI.parents[2] / 'assets'
+TEX = APP / 'tex'
+
+
+def recorta_objeto(img, limiar=28, margem=.04):
+    """Recorta o objeto claro sobre fundo preto num quadrado, com margem."""
+    L = luma(np.asarray(img, float))
+    ys, xs = np.nonzero(L > limiar)
+    cx, cy = (xs.min() + xs.max()) / 2, (ys.min() + ys.max()) / 2
+    r = max(xs.max() - xs.min(), ys.max() - ys.min()) / 2 * (1 + margem)
+    return img.crop((int(cx - r), int(cy - r), int(cx + r), int(cy + r)))
+
+
+def sem_fundo(img, lo=10, hi=60):
+    """O preto vira transparência; o brilho da membrana continua."""
+    a = np.asarray(img.convert('RGB'), float)
+    m = np.clip((a.max(2) - lo) / (hi - lo), 0, 1)
+    alpha = (m * m * (3 - 2 * m) * 255).astype(np.uint8)
+    return Image.fromarray(np.dstack([a.astype(np.uint8), alpha]), 'RGBA')
+
+
+def salva_rgba(img, destino, q):
+    img.save(destino, 'WEBP', quality=q, method=6)
+    print(f'{destino.name:22} {img.size[0]}x{img.size[1]}  {destino.stat().st_size // 1024} KB')
+
+
+TEX.mkdir(parents=True, exist_ok=True)
+mitose = recorta_objeto(Image.open(FONTES / 'mitose-1.jpg').convert('RGB'))
+celula = recorta_objeto(Image.open(FONTES / 'celula.jpg').convert('RGB'))
+nucleo = recorta_objeto(Image.open(FONTES / 'nucleo-2.jpg').convert('RGB'))
+# Pequenas (células de série, cápsula, aviso): nítidas a 44 px em tela 3x.
+salva_rgba(sem_fundo(mitose.resize((144, 144), Image.LANCZOS).filter(ImageFilter.UnsharpMask(1, 60, 2))), TEX / 'cel-mitose.webp', 82)
+salva_rgba(sem_fundo(celula.resize((144, 144), Image.LANCZOS).filter(ImageFilter.UnsharpMask(1, 60, 2))), TEX / 'cel-repouso.webp', 82)
+# Grandes (Mutação e abertura).
+salva_rgba(sem_fundo(mitose.resize((480, 480), Image.LANCZOS)), TEX / 'mitose.webp', 78)
+salva_rgba(sem_fundo(celula.resize((480, 480), Image.LANCZOS)), TEX / 'celula.webp', 78)
+salva_rgba(sem_fundo(nucleo.resize((360, 360), Image.LANCZOS)), TEX / 'nucleo.webp', 76)
+# Cromossomos alinhados em faixa (placa metafásica): fundo da Mutação e telas vazias.
+crom = Image.open(FONTES / 'cromossomos-1.jpg').convert('RGB')
+crom = crom.crop((0, 300, 1024, 720)).resize((800, 328), Image.LANCZOS)
+salva_rgba(sem_fundo(crom, 14, 70), TEX / 'cromossomos.webp', 74)
+
+# Ícones do app: a mitose sobre o fundo preto-sangue. O maskable deixa a
+# zona segura (80% do centro) para os recortes redondos do Android.
+FUNDO = (12, 7, 9)
+def icone(tam, ocupa, destino):
+    base = Image.new('RGB', (tam, tam), FUNDO)
+    m = sem_fundo(mitose).resize((int(tam * ocupa), int(tam * ocupa)), Image.LANCZOS)
+    base.paste(m, ((tam - m.width) // 2, (tam - m.height) // 2), m)
+    # 200 cores com pontilhado: um terço do tamanho, sem diferença visível.
+    base.quantize(colors=200, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.FLOYDSTEINBERG).save(destino, 'PNG', optimize=True)
+    print(f'{destino.name:22} {tam}x{tam}  {destino.stat().st_size // 1024} KB')
+icone(192, .92, APP / 'icon-192.png')
+icone(512, .92, APP / 'icon-512.png')
+icone(512, .72, APP / 'icon-maskable-512.png')
+icone(180, .86, APP / 'apple-touch-icon.png')
 
 # Embute tudo na maquete (arquivo único, abre em qualquer lugar). No app, os .webp vão como arquivos.
 import base64

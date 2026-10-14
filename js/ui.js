@@ -5,41 +5,53 @@
 // visual. Aqui tudo passa por modais próprios.
 
 import { escapeHtml } from './util.js';
-import { primeAudio } from './fx.js';
+import { primeAudio, motionOK, read } from './fx.js';
+import { mitoseHTML } from './cells.js';
 
+// Ícones em SVG de traço reto (o CSS dá a cor e a espessura). Sem emoji.
+const ic = d => '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="' + d + '" stroke-linecap="square"/></svg>';
 export const ICON = {
-  plus:    '<svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>',
-  import:  '<svg viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5v-2z"/></svg>',
-  history: '<svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>',
-  stats:   '<svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>',
-  back:    '<svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>',
-  rest:    '<svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>',
-  start:   '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>',
-  edit:    '<svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>',
-  gear:    '<svg viewBox="0 0 24 24"><path d="M19.14 12.94a7.07 7.07 0 0 0 0-1.88l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.3 7.3 0 0 0-1.62-.94l-.36-2.54a.5.5 0 0 0-.5-.42h-3.84a.5.5 0 0 0-.5.42l-.36 2.54c-.58.24-1.12.55-1.62.94l-2.39-.96a.5.5 0 0 0-.6.22L2.66 8.84a.5.5 0 0 0 .12.64l2.03 1.58a7.07 7.07 0 0 0 0 1.88l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32c.13.22.39.3.6.22l2.39-.96c.5.39 1.04.7 1.62.94l.36 2.54c.04.24.25.42.5.42h3.84c.25 0 .46-.18.5-.42l.36-2.54c.58-.24 1.12-.55 1.62-.94l2.39.96c.22.08.47 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z"/></svg>',
-  down:    '<svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>',
-  gps:     '<svg viewBox="0 0 24 24"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm8.94 3A9 9 0 0 0 13 3.06V1h-2v2.06A9 9 0 0 0 3.06 11H1v2h2.06A9 9 0 0 0 11 20.94V23h2v-2.06A9 9 0 0 0 20.94 13H23v-2h-2.06zM12 19a7 7 0 1 1 0-14 7 7 0 0 1 0 14z"/></svg>',
+  plus:    ic('M12 4v16M4 12h16'),
+  import:  ic('M12 15V3M7 8l5-5 5 5M4 15v5h16v-5'),
+  history: ic('M4 6h16M4 12h16M4 18h10'),
+  stats:   ic('M5 20V11M12 20V5M19 20v-6M3 20h18'),
+  back:    ic('M20 12H5M11 5l-7 7 7 7'),
+  go:      ic('M5 12h14M13 5l7 7-7 7'),
+  rest:    ic('M3 12h4l2-5 3 10 2-7 2 4h5'),
+  start:   ic('M7 4l12 8-12 8z'),
+  edit:    ic('M4 20h4L19 9l-4-4L4 16zM13 7l4 4'),
+  trash:   ic('M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6'),
+  down:    ic('M12 3v12M7 10l5 5 5-5M4 20h16'),
+  gps:     ic('M12 2v4M12 18v4M2 12h4M18 12h4M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10z'),
+  hide:    ic('M4 12h16M8 8l-4 4 4 4M16 8l4 4-4 4'),
 };
 
-// ===== toast =====
-// `onClick`, quando passado, mantém o toast na tela até ser tocado (usado
+// ===== aviso (B) =====
+// Uma tira impressa sai do topo, com o texto em Leitura e a célula ao lado.
+// `onClick`, quando passado, mantém o aviso na tela até ser tocado (usado
 // pelo aviso de atualização do service worker, que não deve sumir sozinho).
 export function toast(msg, kind = '', onClick = null) {
   const wrap = document.getElementById('toastWrap');
   const el = document.createElement('div');
   el.className = 'toast ' + kind;
-  el.textContent = msg;
+  el.setAttribute('role', 'status');
+  const icon = document.createElement('i');
+  icon.innerHTML = mitoseHTML(kind === 'err' ? 5 : 2);
+  const txt = document.createElement('span');
+  el.append(icon, txt);
   wrap.appendChild(el);
+  read(txt, msg);
+  if (motionOK()) el.animate([{ transform: 'translateY(-100%)' }, { transform: 'none' }], { duration: 200, easing: 'cubic-bezier(.2,0,0,1)' });
   const dismiss = () => {
-    el.style.transition = 'opacity .25s';
-    el.style.opacity = '0';
-    setTimeout(() => el.remove(), 260);
+    const fin = () => el.remove();
+    if (!motionOK()) return fin();
+    el.animate([{ transform: 'none' }, { transform: 'translateY(-100%)', opacity: 0 }], { duration: 200, easing: 'cubic-bezier(.4,0,1,1)' }).onfinish = fin;
   };
   if (onClick) {
     el.style.cursor = 'pointer';
-    el.addEventListener('click', () => { onClick(); dismiss(); });
+    el.addEventListener('click', () => { onClick(); dismiss(); }, { once: true });
   } else {
-    setTimeout(dismiss, kind === 'ok' ? 2200 : 3200);
+    setTimeout(dismiss, 2400 + Math.min(2000, msg.length * 25));
   }
 }
 
@@ -56,19 +68,32 @@ export function modal({ title, body = '', buttons = [], onMount, dismissible = t
     closeModal();
     const overlay = document.createElement('div');
     overlay.className = 'modal-overlay';
+    // Até dois botões ficam lado a lado (o principal à direita, onde o polegar
+    // alcança); com três ou mais, empilham.
+    const lado = buttons.length <= 2;
+    const ordem = lado ? [...buttons.keys()].reverse() : [...buttons.keys()];
     overlay.innerHTML =
-      '<div class="modal" role="dialog" aria-modal="true">' +
-        '<h3>' + escapeHtml(title) + '</h3>' +
+      '<div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">' +
+        '<i class="reg a"></i><i class="reg b"></i><i class="reg c"></i><i class="reg d"></i>' +
+        '<h3 id="modalTitle" tabindex="-1">' + escapeHtml(title) + '</h3>' +
         body +
-        '<div class="error" id="modalError"></div>' +
-        buttons.map((b, i) =>
-          '<button class="btn ' + (b.cls || 'btn-secondary') + '" data-mi="' + i + '">' + (b.label) + '</button>'
+        '<div class="error" id="modalError" role="alert"></div>' +
+        '<div class="modal-btns' + (lado ? '' : ' stack') + '">' +
+        ordem.map(i =>
+          '<button type="button" class="btn ' + (buttons[i].cls || 'btn-secondary') + '" data-mi="' + i + '">' + (buttons[i].label) + '</button>'
         ).join('') +
+        '</div>' +
       '</div>';
     document.body.appendChild(overlay);
     openOverlay = overlay;
+    const lastFocus = document.activeElement;
+    entrar(overlay);
 
-    const done = val => { closeModal(); resolve(val); };
+    const done = val => {
+      closeModal();
+      if (lastFocus && lastFocus.isConnected && lastFocus.focus) lastFocus.focus({ preventScroll: true });
+      resolve(val);
+    };
 
     overlay.querySelectorAll('[data-mi]').forEach(btn => {
       btn.onclick = () => {
@@ -90,11 +115,33 @@ export function modal({ title, body = '', buttons = [], onMount, dismissible = t
     onMount && onMount(overlay);
     const first = overlay.querySelector('input, textarea');
     if (first) setTimeout(() => first.focus(), 60);
+    else overlay.querySelector('#modalTitle').focus({ preventScroll: true });
   });
 }
 
 export function closeModal() {
-  if (openOverlay) { openOverlay.remove(); openOverlay = null; }
+  if (!openOverlay) return;
+  const ov = openOverlay;
+  openOverlay = null;
+  if (!motionOK()) { ov.remove(); return; }
+  ov.style.pointerEvents = 'none';
+  ov.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200 });
+  ov.querySelector('.modal').animate([{ transform: 'none' }, { transform: 'translateY(100%)' }], { duration: 200, easing: 'cubic-bezier(.4,0,1,1)' })
+    .onfinish = () => ov.remove();
+}
+
+/** Lâmina (A): sobe como uma lâmina sob a lente; as marcas chegam e travam nos cantos. */
+function entrar(ov) {
+  const m = ov.querySelector('.modal');
+  if (!motionOK()) return;
+  ov.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200 });
+  m.animate([{ transform: 'translateY(100%)' }, { transform: 'none' }], { duration: 320, easing: 'cubic-bezier(.2,0,0,1)' });
+  const off = { a: '-14px,-14px', b: '14px,-14px', c: '-14px,14px', d: '14px,14px' };
+  m.querySelectorAll('.reg').forEach(r => {
+    const k = [...r.classList].find(c => off[c]);
+    r.animate([{ transform: `translate(${off[k]})`, opacity: 0 }, { transform: 'none', opacity: 1 }],
+      { duration: 240, delay: 140, easing: 'cubic-bezier(.5,1.6,.4,1)', fill: 'backwards' });
+  });
 }
 
 export function modalError(msg) {
@@ -103,13 +150,13 @@ export function modalError(msg) {
 }
 
 /** Substitui o confirm() nativo. */
-export function confirmDialog(title, texto, okLabel = 'CONFIRMAR', danger = true) {
+export function confirmDialog(title, texto, okLabel = 'Confirmar', danger = true) {
   return modal({
     title,
     body: '<div class="hint">' + escapeHtml(texto) + '</div>',
     buttons: [
       { label: okLabel, cls: danger ? 'btn-danger' : 'btn-primary', value: true },
-      { label: 'CANCELAR', cls: 'btn-ghost', value: false },
+      { label: 'Voltar', cls: 'btn-secondary', value: false },
     ],
   }).then(v => v === true);
 }
@@ -131,7 +178,7 @@ export function promptValue(opts) {
           label: opts.okLabel || 'OK', cls: 'btn-primary', value: 'ok',
           onClick(ov) { captured = ov.querySelector('#promptInput').value; },
         },
-        { label: 'CANCELAR', cls: 'btn-ghost', value: null },
+        { label: 'Cancelar', cls: 'btn-secondary', value: null },
       ],
       onMount(ov) {
         ov.querySelector('#promptInput').addEventListener('keydown', e => {

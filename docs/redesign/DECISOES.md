@@ -6,7 +6,7 @@ Referência visual e de movimento: [`maquete.html`](maquete.html).
 
 - **Nome:** NerV (sem NERv2 / NERV3).
 - **Direção:** Espécime em Metabolismo. Paleta D3 (Medula), fontes Anybody e Martian Mono.
-- **Elemento de osso:** a célula de série é um corte de ósteon.
+- **Elemento de marca:** ~~ósteon~~ (não funcionou como ícone). A série é uma **célula que se divide** ao ser fechada; a Mutação mostra os cromossomos se alinhando antes da divisão.
 - **Mascote:** a bomba sai e não volta.
 - **Descanso:** começa só quando o usuário pede (botão), como o código já faz. O README será corrigido.
 - **Som:** só dois momentos, lub-dub no fim do descanso e acorde curto no recorde. Com o descanso estourado, a cobrança é só vibração (hoje o app apita a cada 15 s).
@@ -17,5 +17,5 @@ Referência visual e de movimento: [`maquete.html`](maquete.html).
 
 1. ~~Passada orgânica procedural na maquete~~ (feita): ósteon com contorno torto, lamelas interrompidas e lacunas variadas; veias curvas que afinam e bifurcam em Y; membrana em células irregulares; fibras onduladas.
    - ~~Texturas do Gemini~~ (feitas): a API exige faturamento (mínimo de R$ 150), então as imagens foram geradas à mão no app do Gemini. Veja [`TEXTURAS.md`](TEXTURAS.md).
-2. Ok da mesa na maquete revisada.
-3. `BRIEFING.md` de execução, no formato do MedControl.
+2. ~~Ok da mesa~~: aprovado, e a mesa pediu para seguir direto para o app, sem briefing.
+3. ~~Redesign aplicado no app~~ (versão 3.0.0): paleta, fontes locais, texturas, células, os nove movimentos, Lâmina, Aviso, Abertura e a política de som.
