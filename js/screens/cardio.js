@@ -12,6 +12,7 @@ import { ICON, promptValue, confirmDialog, toast } from '../ui.js';
 import { Stopwatch, keepScreenOn } from '../timers.js';
 import { mutation, vibrate, setRhythm } from '../fx.js';
 import { go, back, setBeforeLeave } from '../router.js';
+import { cardioRecords, detectCardioPRs } from '../progress.js';
 
 let watch = null;
 let geo = { id: null, dist: 0, last: null, acc: null, erro: null };
@@ -26,6 +27,7 @@ export function screenCardio(params, el) {
       '<div class="stat-card"><div class="stat-value" id="cDist">0.00</div><div class="stat-label">km</div></div>' +
       '<div class="stat-card"><div class="stat-value" id="cPace">--:--</div><div class="stat-label">pace /km</div></div>' +
     '</div>' +
+    recordesHTML() +
     '<div class="hint" id="gpsHint">O GPS mede a distância sozinho. Sem sinal ou na esteira, você informa a distância no fim.</div>' +
     '<button class="btn btn-primary" id="btnStart" type="button">' + ICON.start + 'Iniciar</button>' +
     '<button class="btn" id="btnGps" type="button" style="display:none;">' + ICON.gps + 'Usar GPS</button>' +
@@ -179,18 +181,20 @@ async function finalizar(el) {
   }
 
   const pace = km > 0 ? calcPace(segundos, km) : '00:00';
-
-  state.cardioHistory.push({
+  const sessao = {
     id: uid('c'),
     date: new Date().toISOString(),
     distance: km,
     duration: segundos,
     pace,
     source: viaGps ? 'gps' : 'manual',
-  });
+  };
+  // Os recordes saem do histórico ANTERIOR: calculados antes de gravar.
+  const prs = detectCardioPRs(sessao);
+  state.cardioHistory.push(sessao);
   saveState();
 
-  mostrarPace(km, segundos, pace, () => { limpar(); mutation([], () => go('/fichas', { replace: true })); });
+  mostrarPace(km, segundos, pace, () => { limpar(); mutation(prs, () => go('/fichas', { replace: true })); });
 }
 
 function mostrarPace(km, segundos, pace, cb) {
@@ -210,4 +214,15 @@ function limpar() {
   pararGps(null);
   geo = { id: null, dist: 0, last: null, acc: null, erro: null };
   keepScreenOn(false);
+}
+
+/** Recordes atuais, para saber o que bater. Pace só conta a partir de 1 km. */
+function recordesHTML() {
+  const r = cardioRecords();
+  if (!r.pace && !r.distancia) return '';
+  const s = r.pace && Math.round(r.pace);
+  return '<div class="lbl" style="text-align:center;margin:-8px 0 16px;">recordes: ' +
+    (r.pace ? 'pace <b>' + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0') + '/km</b>' : '') +
+    (r.pace && r.distancia ? ' · ' : '') +
+    (r.distancia ? 'distância <b>' + r.distancia.toFixed(2).replace('.', ',') + ' km</b>' : '') + '</div>';
 }

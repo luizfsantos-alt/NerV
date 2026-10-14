@@ -148,10 +148,10 @@ export function vibrate(pattern) {
   try { navigator.vibrate && navigator.vibrate(pattern); } catch (e) {}
 }
 
-// ===== som: só dois momentos =====
-// Quem treina ouve música. O app só soa no fim do descanso (lub-dub curto) e
-// no recorde (acorde curto). Fechar série, encistar, navegar e avisos não
-// fazem som; a cobrança do descanso estourado é só vibração.
+// ===== som: um momento só =====
+// Quem treina ouve música. O app só soa no fim do descanso (lub-dub curto).
+// Fechar série, encistar, navegar, avisos e a Mutação não fazem som; a
+// cobrança do descanso estourado é só vibração.
 let audioCtx = null;
 export function sound(kind) {
   try {
@@ -171,9 +171,6 @@ export function sound(kind) {
     if (kind === 'rest') {          // lub-dub com clique
       tone(190, 0, .16, 'sine', .9, 70); tone(1400, 0, .02, 'square', .12);
       tone(160, .2, .14, 'sine', .6, 60); tone(1200, .2, .018, 'square', .08);
-    } else if (kind === 'mut') {    // acorde que sobe
-      [220, 277, 330, 440].forEach((f, k) => tone(f, k * .05, .55, 'sawtooth', .12, f * 1.5));
-      tone(880, .18, .4, 'triangle', .15);
     }
   } catch (e) { /* navegador sem áudio: a vibração já cobre */ }
 }
@@ -187,9 +184,13 @@ export function primeAudio() {
 }
 
 // ===== 08 Mutação =====
-// Fim de treino. Sem recorde, um "+1" rápido. Com recorde, a tela esquenta de
-// baixo para cima por toda a rampa térmica até o branco, a célula se divide e
-// a palavra estica até o limite da fonte.
+// Fim de treino ou de corrida. Sem recorde, um "+1". Com recorde, a tela
+// esquenta de baixo para cima por toda a rampa térmica até o branco, a célula
+// se divide, a palavra estica até o limite da fonte e as conquistas entram uma
+// a uma, cada uma com um toque de vibração. Não há som: quem treina ouve música.
+
+const PASSO_CONQUISTA = 900;   // ms entre uma conquista e a próxima
+const LEITURA = 3200;          // ms de tela parada depois da última, para ler
 let mutOpen = false;
 let mutSeed = 23;
 
@@ -207,23 +208,24 @@ export function mutation(prs, cb) {
     : 'Sessão registrada';
   const listEl = m.querySelector('#mutList');
   listEl.innerHTML = '';
-  list.slice(0, 4).forEach(p => {
+  const itens = list.slice(0, 6);
+  itens.forEach(p => {
     const d = document.createElement('div');
     d.append(p.nome.toUpperCase() + ' · ');
     const b = document.createElement('b');
-    b.textContent = p.tipo === 'carga' ? fmtKg(p.valor) : '1RM ' + fmtKg(p.valor, 1);
+    b.textContent = valorPR(p);
     d.append(b);
     listEl.append(d);
   });
 
   m.classList.add('on');
   vibrate(pr ? [60, 60, 60, 60, 220] : 120);
-  if (pr) sound('mut');
   const prev = rhythm();
   setRhythm(pr ? 168 : 120, pr ? 'Mutação' : 'Sessão registrada');
 
   // A célula alinha os cromossomos e se divide.
   const cel = m.querySelector('#mutCel'), crom = m.querySelector('#mutCrom'), mit = m.querySelector('#mutMit');
+  const toques = [];
   const final = () => { cel.style.opacity = '0'; crom.style.opacity = '0'; mit.style.opacity = '1'; };
   // O calor é só do recorde; sem ele, a divisão acontece no escuro.
   heat.style.opacity = pr ? '' : '0';
@@ -258,15 +260,23 @@ export function mutation(prs, cb) {
       { opacity: 0, transform: 'scale(.5, .8)' }, { opacity: 1, transform: 'scale(1.12, .95)', offset: .6 },
       { opacity: 1, transform: 'scale(1)' },
     ], { duration: 700 * k, delay: t0 + 700 * k, easing: 'cubic-bezier(.5,1.4,.4,1)', fill: 'both' });
-    [...listEl.children].forEach((d, k) => d.animate(
-      [{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }],
-      { duration: 240, delay: 1100 + k * 120, fill: 'backwards', easing: 'cubic-bezier(.2,0,0,1)' }));
+    // Uma conquista por vez, depois da divisão.
+    [...listEl.children].forEach((d, k) => {
+      const t = 1500 + k * PASSO_CONQUISTA;
+      d.animate([
+        { opacity: 0, transform: 'translateY(10px) scale(.96)' },
+        { opacity: 1, transform: 'translateY(-2px) scale(1.04)', offset: .6 },
+        { opacity: 1, transform: 'none' },
+      ], { duration: 420, delay: t, fill: 'backwards', easing: 'cubic-bezier(.2,0,0,1)' });
+      toques.push(setTimeout(() => vibrate(35), t));
+    });
   }
 
   const close = () => {
     if (!mutOpen) return;
     mutOpen = false;
     clearTimeout(timer);
+    toques.forEach(clearTimeout);
     m.onclick = null;
     const fin = () => {
       m.classList.remove('on');
@@ -278,10 +288,22 @@ export function mutation(prs, cb) {
     if (!motionOK()) fin();
     else m.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, easing: 'cubic-bezier(.4,0,1,1)' }).onfinish = fin;
   };
-  const timer = setTimeout(close, pr ? 2800 : 1600);
+  const timer = setTimeout(close, pr ? 1500 + itens.length * PASSO_CONQUISTA + LEITURA : 3000);
   m.onclick = close;   // dá para pular tocando na tela
 }
 
 function fmtKg(v, dec = 0) {
   return (dec ? v.toFixed(dec) : String(v)).replace('.', ',') + ' KG';
+}
+
+/** Texto de uma conquista: carga, 1RM, pace ou distância. */
+function valorPR(p) {
+  if (p.tipo === 'carga') return fmtKg(p.valor);
+  if (p.tipo === '1rm') return '1RM ' + fmtKg(p.valor, 1);
+  if (p.tipo === 'pace') {
+    const s = Math.round(p.valor);
+    return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0') + ' /KM';
+  }
+  if (p.tipo === 'distancia') return p.valor.toFixed(2).replace('.', ',') + ' KM';
+  return String(p.valor);
 }

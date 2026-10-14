@@ -3,7 +3,7 @@
 import { state } from '../state.js';
 import { escapeHtml, fmtDuration, fmtDateShort, startOfWeek, volumeOfSets, repsToNumber } from '../util.js';
 import { ICON } from '../ui.js';
-import { allPRs, weekStreak } from '../progress.js';
+import { allPRs, weekStreak, cardioRecords } from '../progress.js';
 import { back } from '../router.js';
 import { read, motionOK } from '../fx.js';
 
@@ -37,6 +37,7 @@ export function screenStats(params, el) {
   html += '<div class="card"><div class="card-tag">Calor</div><h3>Sessões por semana</h3><div class="chart" id="chart"></div></div>';
   html += '<div class="card"><div class="card-tag">Frequência</div><h3>Treino favorito</h3>' + favoritos() + '</div>';
   html += '<div class="card"><div class="card-tag">Recordes</div><h3>Recordes pessoais</h3>' + prs() + '</div>';
+  html += '<div class="card"><div class="card-tag">Cardio</div><h3>Recordes de corrida</h3>' + recordesCardio() + '</div>';
 
   el.innerHTML = html;
   const voltar = el.querySelector('#back');
@@ -70,8 +71,8 @@ function prs() {
     '<div class="pr-row">' +
       '<span>#' + (i + 1) + ' ' + escapeHtml(p.nome) + '</span>' +
       '<span style="text-align:right;">' +
-        '<span class="v">' + p.carga + ' kg</span>' +
-        (p.e1rm > p.carga ? '<br><span class="pr-1rm">1RM ~' + p.e1rm.toFixed(1) + ' kg</span>' : '') +
+        '<span class="v">' + String(p.carga).replace('.', ',') + ' kg</span>' +
+        (p.e1rm > p.carga ? '<br><span class="pr-1rm">1RM ~' + p.e1rm.toFixed(1).replace('.', ',') + ' kg</span>' : '') +
       '</span>' +
     '</div>'
   ).join('');
@@ -112,4 +113,13 @@ function desenharGrafico(chart) {
     { duration: 600, delay: 120 + k * 50, easing: 'cubic-bezier(.7,0,.2,1)', fill: 'backwards' }));
   chart.querySelectorAll('.col em').forEach((b, k) => b.animate([{ opacity: 0 }, { opacity: 1 }],
     { duration: 200, delay: 600 + k * 50, fill: 'backwards' }));
+}
+
+/** Melhor pace (corridas de pelo menos 1 km) e maior distância numa corrida. */
+function recordesCardio() {
+  const r = cardioRecords();
+  if (!r.pace && !r.distancia) return '<div class="empty">Sem corridas registradas.</div>';
+  const s = r.pace && Math.round(r.pace);
+  return (r.pace ? '<div class="pr-row"><span>Melhor pace</span><span class="v">' + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0') + ' /km</span></div>' : '') +
+    (r.distancia ? '<div class="pr-row"><span>Maior distância</span><span class="v">' + r.distancia.toFixed(2).replace('.', ',') + ' km</span></div>' : '');
 }

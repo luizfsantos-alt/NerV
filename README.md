@@ -72,7 +72,7 @@ duas, e uma faísca desce até a próxima série, que fica acesa pulsando.
 - **Descanso** só começa quando você pede, no botão do card: fechar a série
   não dispara nada. Ele aparece numa barra fixa no rodapé, visível de qualquer
   ponto da tela, com um eletro correndo no ritmo do coração, `+30s` e `PULAR`.
-  Estourou o tempo, um único som (lub-dub), a barra conta o atraso para cima e
+  Estourou o tempo, um único som (lub-dub, o único som do app), a barra conta o atraso para cima e
   as veias crescem das bordas da tela, pulsando cada vez mais rápido. Depois
   disso a cobrança é **só vibração**, para não brigar com a música de quem
   treina.
@@ -85,17 +85,22 @@ duas, e uma faísca desce até a próxima série, que fica acesa pulsando.
 - **Sair com séries não salvas pede confirmação**, inclusive pelo botão físico
   de voltar do Android.
 
-**Progressão automática.** A carga sugerida vem da **sua última sessão daquele
-exercício, série a série** — não do seu recorde histórico. Se na última vez
-você fechou todas as séries no topo da faixa de reps, o alvo sobe um incremento
-arredondado para anilha (`+2,5 kg` ou `+2,5%`, o que for maior) e o card mostra
-`+CARGA`.
+**Carga sugerida.** Toda série começa com a **maior carga que você já fez
+naquele exercício**, e nunca mais do que ela. Sem histórico, vale a carga
+escrita na ficha. O card mostra o que você fez da última vez, para referência;
+subir a carga é decisão sua, e a Mutação registra quando você sobe.
 
 **Recordes de verdade.** Ao concluir, a célula se divide na tela (`+1`). Só
-quando você bate um PR real, comparado com o histórico **anterior** à sessão —
-por carga absoluta ou por 1RM estimado (fórmula de Epley) —, vem a
-**Mutação**: a tela esquenta até o branco, os recordes aparecem e soa um
-acorde curto. É o único outro som do app.
+quando você bate um recorde real, comparado com o histórico **anterior** à
+sessão, vem a **Mutação**: a tela esquenta até o branco e as conquistas entram
+uma a uma, cada uma com um toque de vibração, sem som. Contam como recorde:
+
+- no treino, carga absoluta ou 1RM estimado (fórmula de Epley) por exercício;
+- no cardio, o **melhor pace** (só corridas de 1 km ou mais) e a **maior
+  distância** numa corrida.
+
+A primeira sessão de cada coisa não é recorde: não há com o que comparar. Os
+recordes de corrida aparecem na tela de Cardio e em Stats.
 
 **Cardio com GPS.** Distância e pace por `watchPosition`, com descarte de
 leituras ruins. Sem sinal ou na esteira, você informa a distância no fim e a
@@ -265,9 +270,9 @@ js/
   app.js                entrada: rotas, ciclo de vida do PWA, atualização
   router.js             navegação por hash + History API
   state.js              persistência, migração de schema, backup
-  progress.js           última sessão, PRs, 1RM, sugestão de carga
+  progress.js           última sessão, recordes (carga, 1RM, pace, distância), sugestão
   timers.js             cronômetros por timestamp, descanso, Wake Lock
-  fx.js                 coração (--beat), varredura, leitura, som, Mutação
+  fx.js                 coração (--beat), varredura, leitura, som do descanso, Mutação
   cells.js              células de série: imagens, pose por semente, divisão
   veins.js              veias que crescem quando o descanso estoura
   ui.js                 modais, toasts, ícones (substituem alert/confirm/prompt)
@@ -319,9 +324,9 @@ endereço.
 **Modais próprios, não `alert`/`confirm`/`prompt`.** Os nativos bloqueiam a
 thread, são feios no PWA instalado e no iOS quebram a identidade visual.
 
-**A progressão olha a última sessão, não o recorde.** A versão original
-pré-preenchia toda série com a carga máxima histórica — ou seja, mandava você
-repetir seu PR em todas as séries de todo treino.
+**A carga sugerida é o seu recorde, e para ali.** A versão 2 sugeria a carga
+da última sessão e somava um incremento sozinha (`+CARGA`). Na 3.2 a sugestão
+voltou a ser o recorde do exercício como teto: o app não inventa progressão.
 
 **Um coração só.** Um único `requestAnimationFrame` escreve `--beat` no
 `<html>`, e tudo o que respira lê essa variável no CSS. O laço para quando o

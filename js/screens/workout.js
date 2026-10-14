@@ -1,7 +1,7 @@
 // Execução do treino.
 //
 // Principais correções em relação ao original:
-//  - a carga sugerida vem da ÚLTIMA sessão (série a série), não do PR histórico;
+//  - a carga sugerida é o seu recorde de carga no exercício, nunca acima dele;
 //  - o cronômetro é baseado em timestamp e sobrevive à tela bloqueada;
 //  - o descanso é uma barra fixa única, com som/vibração e +30s;
 //  - a tela não apaga no meio do treino (Wake Lock);
@@ -41,7 +41,6 @@ export function screenWorkout(params, el) {
         const sug = suggestSets(ex);
         return {
           nome: ex.nome, series: ex.series, reps: ex.reps, intervalo: ex.intervalo,
-          progressed: sug.progressed,
           last: sug.last,
           sets: sug.sets.map(carga => ({ carga, reps: '', done: false })),
         };
@@ -105,9 +104,8 @@ function paint(el) {
     html += '<div class="ex-sub">' + ex.series + ' × ' + reps(ex.reps) + ' · descanso ' + ex.intervalo + 's</div>';
 
     if (ex.last) {
-      const resumo = ex.last.sets.map(s => num(s.carga) + '×' + (s.reps || '?')).join('  ');
-      html += '<div class="last-hint">última vez: <b>' + escapeHtml(resumo) + '</b>' +
-        (ex.progressed ? '<span class="chip">+CARGA</span>' : '') + '</div>';
+      const resumo = ex.last.sets.map(s => String(num(s.carga)).replace('.', ',') + '×' + (s.reps || '?')).join('  ');
+      html += '<div class="last-hint">última vez: <b>' + escapeHtml(resumo) + '</b></div>';
     } else {
       html += '<div class="last-hint">primeira leitura: registre para criar a referência</div>';
     }
