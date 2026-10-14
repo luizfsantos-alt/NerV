@@ -13,6 +13,42 @@ Para mudar cor, contraste ou tamanho, edite e rode `python3 texturas/processar.p
 | Veias | `veias.webp` (540×968, 58 KB) | Hemorragia do descanso estourado. Revela-se das bordas para dentro, sob os galhos procedurais, e o centro fica limpo. |
 | Osso esponjoso | `osso.webp` (ladrilho 688×384, 9 KB) | Botões principais. |
 
+## Rodada 2: células em divisão
+
+O ósteon saiu. A série passa a ser uma célula que se divide ao ser fechada. O contorno e a divisão são animados em código, e as imagens entram como **preenchimento**.
+Gere 2 variações de cada e mande aqui no chat, como da outra vez.
+
+| # | Recurso | Onde entra | Formato | Prioridade |
+|---|---------|-----------|---------|------------|
+| 6 | Célula | Preenchimento das células de série, das células-filhas e da cápsula | Quadrado | Alta |
+| 7 | Núcleo | Núcleo da célula pendente e da próxima série (condensa e pulsa) | Quadrado | Alta |
+| 8 | Cromossomos | Mutação (alinhados antes de separar) e telas vazias | Quadrado | Média |
+| 9 | Mitose | Novo ícone do app e abertura | Quadrado | Alta |
+
+### 6. Célula
+
+```
+Fotografia de microscópio de uma única célula animal vista de cima, redonda e levemente irregular, centralizada e ocupando quase toda a imagem. Citoplasma translúcido e granulado com pequenas organelas, membrana fina e nítida na borda, núcleo arredondado discreto no centro. Tons marfim, creme e âmbar sobre fundo preto puro. Iluminação suave, foco nítido, alto detalhe, aparência orgânica. Formato quadrado. Sem nenhum texto, legenda, seta ou escala.
+```
+
+### 7. Núcleo
+
+```
+Fotografia de microscópio de um único núcleo celular em close, redondo e levemente irregular, centralizado e ocupando quase toda a imagem. Cromatina em fios e grumos densos, nucléolo escuro visível, envoltório nuclear fino na borda. Tons âmbar e dourado escuros sobre fundo preto puro. Iluminação suave, foco nítido, alto detalhe. Formato quadrado. Sem nenhum texto, legenda, seta ou escala.
+```
+
+### 8. Cromossomos
+
+```
+Fotografia de microscópio de cromossomos condensados em metáfase, vistos de lado, alinhados numa faixa horizontal no centro da imagem, cada um em forma de X com braços grossos e texturizados. Tons marfim e âmbar quentes sobre fundo preto puro, com leve brilho. Foco nítido, alto detalhe, aparência orgânica. Formato quadrado. Sem nenhum texto, legenda, seta ou escala.
+```
+
+### 9. Mitose
+
+```
+Fotografia de microscópio de uma célula no fim da divisão, em telófase: duas células-filhas redondas ainda unidas por um estrangulamento fino no meio, cada uma com seu núcleo. Composição centralizada e simétrica, as duas células ocupando cerca de 70% da largura, com margem preta generosa em volta. Tons marfim, creme e âmbar sobre fundo preto puro, leve brilho na membrana. Foco nítido, alto detalhe, aparência orgânica. Formato quadrado. Sem nenhum texto, legenda, seta ou escala.
+```
+
 ## Pedido original
 
 Gere no app do Gemini (gratuito) e salve no Google Drive, na pasta **NerV texturas**, com os nomes indicados.
