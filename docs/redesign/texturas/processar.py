@@ -150,7 +150,9 @@ crom = Image.open(FONTES / 'cromossomos-1.jpg').convert('RGB')
 crom = crom.crop((0, 300, 1024, 720)).resize((800, 328), Image.LANCZOS)
 salva_rgba(sem_fundo(crom, 14, 70), TEX / 'cromossomos.webp', 74)
 
-# Ícones do app: a mitose sobre o fundo preto-sangue. O maskable deixa a
+# Ícones do app: a mitose sobre o fundo preto-sangue. O nome leva a versão do
+# desenho (-v3): o Android só troca o ícone do app instalado quando o endereço
+# no manifesto muda. Desenho novo, sufixo novo, e atualize manifesto, index e sw.js. O maskable deixa a
 # zona segura (80% do centro) para os recortes redondos do Android.
 FUNDO = (12, 7, 9)
 def icone(tam, ocupa, destino):
@@ -160,10 +162,10 @@ def icone(tam, ocupa, destino):
     # 200 cores com pontilhado: um terço do tamanho, sem diferença visível.
     base.quantize(colors=200, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.FLOYDSTEINBERG).save(destino, 'PNG', optimize=True)
     print(f'{destino.name:22} {tam}x{tam}  {destino.stat().st_size // 1024} KB')
-icone(192, .92, APP / 'icon-192.png')
-icone(512, .92, APP / 'icon-512.png')
-icone(512, .72, APP / 'icon-maskable-512.png')
-icone(180, .86, APP / 'apple-touch-icon.png')
+icone(192, .92, APP / 'icon-192-v3.png')
+icone(512, .92, APP / 'icon-512-v3.png')
+icone(512, .72, APP / 'icon-maskable-512-v3.png')
+icone(180, .86, APP / 'apple-touch-icon-v3.png')
 
 # Embute tudo na maquete (arquivo único, abre em qualquer lugar). No app, os .webp vão como arquivos.
 import base64

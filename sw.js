@@ -21,7 +21,7 @@
 // rede com elas.
 
 // O prefixo 'nerv2-' fica: é com ele que a limpeza reconhece os caches antigos.
-const VERSION = 'nerv2-v3.0.0';
+const VERSION = 'nerv2-v3.0.1';
 const CACHE = VERSION;
 
 // Rede lenta não pode segurar a abertura do app. Passou disto, o cache assume.
@@ -54,10 +54,10 @@ const PRECACHE = [
   './js/screens/historico.js',
   './js/screens/stats.js',
   './js/screens/ajustes.js',
-  './assets/icon-192.png',
-  './assets/icon-512.png',
-  './assets/icon-maskable-512.png',
-  './assets/apple-touch-icon.png',
+  './assets/icon-192-v3.png',
+  './assets/icon-512-v3.png',
+  './assets/icon-maskable-512-v3.png',
+  './assets/apple-touch-icon-v3.png',
   './assets/fonts/anybody-var-latin.woff2',
   './assets/fonts/martian-mono-var-latin.woff2',
   './assets/tex/membrana.webp',
