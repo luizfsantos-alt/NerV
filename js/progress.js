@@ -1,11 +1,11 @@
 // Leitura do histórico: o que você fez da última vez, seus recordes e o que
 // sugerir para hoje.
 //
-// O app antigo pré-preenchia toda série com a carga MÁXIMA histórica — ou seja,
-// mandava você repetir seu PR em todas as séries de todo treino. Aqui a
-// referência passa a ser a última sessão daquele exercício, série a série.
+// A carga sugerida é sempre a maior que você já fez naquele exercício, e nunca
+// mais do que ela: o app não inventa progressão. Subir a carga é decisão sua,
+// e quando você sobe, a Mutação registra o recorde.
 
-import { normalizeName, num, repsToNumber, epley1RM, roundToPlate } from './util.js';
+import { normalizeName, num, repsToNumber, epley1RM } from './util.js';
 import { state } from './state.js';
 
 /** Sessões que contêm um exercício, da mais recente para a mais antiga. */
@@ -54,47 +54,20 @@ export function best1RM(nome) {
 }
 
 /**
- * Carga inicial de cada série de hoje.
- *
- * Se na última sessão você fechou TODAS as séries no topo da faixa de reps
- * prescrita, o alvo sobe um incremento de anilha (overload progressivo).
- * Caso contrário, repete a carga da última vez — que é o que um treino real faz.
+ * Carga inicial de cada série de hoje: o seu recorde de carga no exercício,
+ * em todas as séries. Sem histórico, a carga escrita na ficha.
  */
 export function suggestSets(ex) {
   const last = lastPerformance(ex.nome);
   const nSeries = Math.max(1, ex.series || 1);
-
-  if (!last) {
-    const base = num(ex.carga);
-    return { sets: Array.from({ length: nSeries }, () => base), progressed: false, last: null };
-  }
-
-  const topAlvo = topOfRange(ex.reps);
-  const bateuTudo = topAlvo > 0
-    && last.sets.length >= nSeries
-    && last.sets.every(s => repsToNumber(s.reps) >= topAlvo);
-
-  const sets = Array.from({ length: nSeries }, (_, i) => {
-    const ref = last.sets[Math.min(i, last.sets.length - 1)];
-    const base = num(ref && ref.carga) || num(ex.carga);
-    return bateuTudo ? roundToPlate(base + Math.max(2.5, base * 0.025)) : base;
-  });
-
-  return { sets, progressed: bateuTudo, last };
-}
-
-/** Topo da faixa de reps: "8-12" -> 12, "10" -> 10. */
-export function topOfRange(reps) {
-  const s = String(reps ?? '').trim();
-  const range = s.match(/(\d+)\s*[-–a]\s*(\d+)/i);
-  if (range) return parseInt(range[2]);
-  return parseInt(s) || 0;
+  const base = bestCarga(ex.nome) || num(ex.carga);
+  return { sets: Array.from({ length: nSeries }, () => base), last };
 }
 
 /**
  * Compara o que acabou de ser feito com o histórico ANTERIOR e devolve os
- * recordes batidos. Chamado antes de gravar a sessão, para que o "+1
- * SINGULARITY" signifique alguma coisa.
+ * recordes batidos. Chamado antes de gravar a sessão, para que a Mutação
+ * signifique alguma coisa.
  */
 export function detectPRs(exercicios) {
   const prs = [];
@@ -158,4 +131,38 @@ export function weekStreak() {
   if (!weeks.has(cursor)) cursor -= 7 * 86400000;
   while (weeks.has(cursor)) { streak++; cursor -= 7 * 86400000; }
   return streak;
+}
+
+// ===== cardio =====
+
+// Abaixo disto o pace é ruído: 200 m num tiro dão um pace que nenhuma corrida
+// de verdade alcança.
+export const PACE_MIN_KM = 1;
+
+/** Segundos por km de uma sessão de cardio (Infinity sem distância válida). */
+export function paceSeg(c) {
+  return c && c.distance >= PACE_MIN_KM && c.duration > 0 ? c.duration / c.distance : Infinity;
+}
+
+/** Recordes de cardio: melhor pace (com pelo menos 1 km) e maior distância. */
+export function cardioRecords(historico = state.cardioHistory) {
+  let pace = Infinity, distancia = 0;
+  historico.forEach(c => {
+    pace = Math.min(pace, paceSeg(c));
+    distancia = Math.max(distancia, c.distance || 0);
+  });
+  return { pace: Number.isFinite(pace) ? pace : null, distancia: distancia > 0 ? distancia : null };
+}
+
+/**
+ * Recordes que uma corrida nova bate, contra o histórico ANTERIOR. A primeira
+ * corrida não é recorde de nada: não há com o que comparar.
+ */
+export function detectCardioPRs(nova) {
+  const antes = cardioRecords();
+  const prs = [];
+  const p = paceSeg(nova);
+  if (antes.pace && Number.isFinite(p) && p < antes.pace) prs.push({ nome: 'Pace', tipo: 'pace', valor: p, anterior: antes.pace });
+  if (antes.distancia && nova.distance > antes.distancia) prs.push({ nome: 'Distância', tipo: 'distancia', valor: nova.distance, anterior: antes.distancia });
+  return prs;
 }
