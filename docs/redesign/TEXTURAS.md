@@ -18,8 +18,8 @@ Para mudar cor, contraste ou tamanho, edite e rode `python3 texturas/processar.p
 O ósteon saiu. A série passa a ser uma célula que se divide ao ser fechada.
 
 **Situação:** geradas e aplicadas no app (`assets/tex/`). As imagens ficaram boas o bastante para entrar inteiras, e não só como preenchimento:
-- `celula.jpg` → célula em repouso (série pendente e próxima) e início da Mutação;
-- `mitose-1.jpg` → série fechada, cápsula, aviso, fim da Mutação e **ícone do app**;
+- `celula.jpg` → célula em repouso (série pendente e próxima), início da Mutação e **ícone do app** (desde a 3.0.2);
+- `mitose-1.jpg` → série fechada, cápsula, aviso e fim da Mutação. Foi o ícone na 3.0, mas pequenas as duas células juntas ficavam ambíguas;
 - `cromossomos-1.jpg` → placa metafásica que acende na Mutação, antes da divisão;
 - `nucleo-2.jpg` → telas vazias.
 
