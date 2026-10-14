@@ -15,6 +15,7 @@ Referência visual e de movimento: [`maquete.html`](maquete.html).
 
 ## Próximos passos
 
-1. Passada orgânica na maquete: texturas do Gemini e veias procedurais afinando e se ramificando em Y.
+1. ~~Passada orgânica procedural na maquete~~ (feita): ósteon com contorno torto, lamelas interrompidas e lacunas variadas; veias curvas que afinam e bifurcam em Y; membrana em células irregulares; fibras onduladas.
+   - Texturas do Gemini por cima: **bloqueado**. A chave atual (plano gratuito) tem cota zero para os modelos de imagem; é preciso ativar o faturamento no Google AI Studio. Texto funciona (`gemini-3.5-flash`).
 2. Ok da mesa na maquete revisada.
 3. `BRIEFING.md` de execução, no formato do MedControl.
