@@ -6,7 +6,8 @@ Referência visual e de movimento: [`maquete.html`](maquete.html).
 
 - **Nome:** NerV (sem NERv2 / NERV3).
 - **Direção:** Espécime em Metabolismo. Fontes Anybody e Martian Mono. A paleta nasceu D3 (Medula, cor de osso); desde a 3.1 a cor de destaque é o **violeta de contraste**, o corante da lâmina, e as imagens de célula passam por esse filtro.
-- **Botões principais:** o mesmo tecido de células do fundo do app, em violeta claro (antes, osso esponjoso).
+- **Botões principais:** o mesmo tecido de células do fundo do app, em violeta profundo (cristal violeta) com texto claro (antes, osso esponjoso; na 3.1.0, violeta claro).
+- **Tom do violeta (3.1.1):** saturado e escuro, como em lâmina corada de verdade. O destaque é `#9B5DE5`, o mais vivo que ainda dá 4,5:1 de contraste como texto sobre os cards.
 - **Elemento de marca:** ~~ósteon~~ (não funcionou como ícone). A série é uma **célula que se divide** ao ser fechada; a Mutação mostra os cromossomos se alinhando antes da divisão.
 - **Mascote:** a bomba sai e não volta.
 - **Descanso:** começa só quando o usuário pede (botão), como o código já faz. O README será corrigido.

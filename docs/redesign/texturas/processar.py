@@ -108,10 +108,10 @@ t = normaliza(luma(a), 1, 99)
 salva(rampa(t, ['#c09a5c', '#d2b077', '#dfc28d', '#ead1a2']), 'osso.webp', 74)
 
 # Botões principais (desde a 3.1): o mesmo tecido de células do fundo do app,
-# em violeta claro, repetido sem emenda. Substitui o osso esponjoso.
+# em violeta profundo (cristal violeta), repetido sem emenda; o texto é claro. Substitui o osso esponjoso.
 a = sem_emenda(carrega('membrana.jpg', (512, 512)))
 t = normaliza(luma(a), 3, 99.7) ** .8
-img = Image.fromarray(rampa(t, ['#7a52bb', '#9472d0', '#ae90df', '#c8b0ee']).astype(np.uint8))
+img = Image.fromarray(rampa(t, ['#3e1280', '#521c9e', '#6629b8', '#7a3acf']).astype(np.uint8))
 (AQUI.parents[2] / 'assets' / 'tex').mkdir(parents=True, exist_ok=True)
 img.save(AQUI.parents[2] / 'assets' / 'tex' / 'botao.webp', 'WEBP', quality=74, method=6)
 print('botao.webp       512x512')
@@ -141,7 +141,7 @@ def sem_fundo(img, lo=10, hi=60):
 # Violeta de contraste (desde a 3.1): as células aparecem como numa lâmina
 # corada. O filtro mapeia o brilho de cada ponto numa rampa violeta e mantém
 # a transparência, então o detalhe da imagem original fica todo lá.
-CORANTE = ['#000000', '#1a0c33', '#4f2a94', '#9a72dc', '#efe4ff']
+CORANTE = ['#000000', '#170530', '#3f1088', '#7f35d6', '#dcb8ff']
 
 
 def corante(img):
@@ -174,8 +174,8 @@ salva_rgba(sem_fundo(crom, 14, 70), TEX / 'cromossomos.webp', 74)
 
 # Ícones do app: uma célula sozinha, antes da divisão, em violeta, sobre o
 # fundo preto-sangue. Histórico: v3 mitose (ambígua quando pequena), v4 célula
-# em âmbar, v5 célula em violeta.
-# O nome leva a versão do desenho (-v5): o Android só troca o ícone do app
+# em âmbar, v5 célula em violeta claro, v6 violeta profundo de lâmina corada.
+# O nome leva a versão do desenho (-v6): o Android só troca o ícone do app
 # instalado quando o endereço no manifesto muda. Desenho novo, sufixo novo, e
 # atualize manifesto, index e sw.js. O maskable deixa a zona segura (80% do
 # centro) para os recortes redondos do Android.
@@ -187,10 +187,10 @@ def icone(tam, ocupa, destino):
     # 200 cores com pontilhado: um terço do tamanho, sem diferença visível.
     base.quantize(colors=200, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.FLOYDSTEINBERG).save(destino, 'PNG', optimize=True)
     print(f'{destino.name:22} {tam}x{tam}  {destino.stat().st_size // 1024} KB')
-icone(192, .92, APP / 'icon-192-v5.png')
-icone(512, .92, APP / 'icon-512-v5.png')
-icone(512, .78, APP / 'icon-maskable-512-v5.png')
-icone(180, .86, APP / 'apple-touch-icon-v5.png')
+icone(192, .92, APP / 'icon-192-v6.png')
+icone(512, .92, APP / 'icon-512-v6.png')
+icone(512, .78, APP / 'icon-maskable-512-v6.png')
+icone(180, .86, APP / 'apple-touch-icon-v6.png')
 
 # Embute tudo na maquete (arquivo único, abre em qualquer lugar). No app, os .webp vão como arquivos.
 import base64
