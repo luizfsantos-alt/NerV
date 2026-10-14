@@ -5,7 +5,7 @@ Diário de treino e cardio para levar para a academia. PWA instalável,
 nenhuma dependência externa em tempo de execução.
 
 <p align="center">
-  <img src="assets/icon-192.png" alt="NerV" width="96" height="96">
+  <img src="assets/icon-192-v3.png" alt="NerV" width="96" height="96">
 </p>
 
 O cenário que dita todas as decisões deste repositório é concreto: uma academia
@@ -362,6 +362,11 @@ publicar uma mudança:
 
 2. **Arquivo novo em `js/` ou `assets/`?** Acrescente ao `PRECACHE` do `sw.js`,
    senão ele não fica disponível offline.
+
+   **Ícone novo?** Troque também o **nome** dos arquivos (o sufixo `-v3` vira
+   `-v4`) no manifesto, no `index.html` e no `sw.js`. O Android só atualiza o
+   ícone do app instalado quando o endereço no manifesto muda; trocar só a
+   imagem mantém o ícone antigo na tela inicial.
 
 3. **Teste offline:** DevTools → Application → Service Workers → *Offline*, e
    recarregue. O app tem que abrir inteiro.
