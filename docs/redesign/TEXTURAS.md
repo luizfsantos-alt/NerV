@@ -23,6 +23,8 @@ O ósteon saiu. A série passa a ser uma célula que se divide ao ser fechada.
 - `cromossomos-1.jpg` → placa metafásica que acende na Mutação, antes da divisão;
 - `nucleo-2.jpg` → telas vazias.
 
+Desde a 3.1, todas as imagens de célula passam por um filtro violeta (`corante()` no `processar.py`): o brilho de cada ponto vira um tom da rampa violeta e a transparência é mantida. O ícone é a célula em violeta (`-v5`), e o botão principal usa a textura da membrana em violeta claro (`botao.webp`). O osso esponjoso ficou só na maquete.
+
 Guardadas sem uso, para variações futuras: `mitose-2.jpg`, `cromossomos-2.jpg`, `nucleo-1.jpg`.
 
 | # | Recurso | Onde entra | Formato | Prioridade |

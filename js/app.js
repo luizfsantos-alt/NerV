@@ -16,7 +16,7 @@ import { setBeforeLeave } from './router.js';
 
 // Anda junto com o VERSION do sw.js. A tela de Ajustes mostra os dois lado a
 // lado justamente para denunciar quando o service worker fica para trás.
-export const VERSION = '3.0.2';
+export const VERSION = '3.1.0';
 window.__NERV_VERSION__ = VERSION;
 
 // O resgate de emergência do index.html recarrega com ?nerv-reset=... para

@@ -10,7 +10,7 @@
 //  - cada série é uma célula: fechar a série a divide em duas (Contração) e
 //    uma faísca desce até a próxima (Impulso);
 //  - exercício com todas as séries fechadas encista: o card contrai numa fenda
-//    de osso e vira uma cápsula, que reabre no toque.
+//    de luz e vira uma cápsula, que reabre no toque.
 
 import { state, saveState } from '../state.js';
 import { escapeHtml, fmtTime, uid, num, repsToNumber, volumeOfSets } from '../util.js';
@@ -86,8 +86,8 @@ function paint(el) {
   html += '<div class="sess">' +
     '<button class="clock' + (watch.running ? '' : ' paused') + '" type="button" id="clock" aria-label="Tempo de sessão. Toque para pausar ou continuar.">' +
       '<svg viewBox="0 0 220 92" fill="none" aria-hidden="true">' +
-        '<path d="M22 46c1-17 38-31 82-31s88 13 88 31-42 31-86 31-85-14-84-31z" stroke="#94692C" stroke-opacity=".5"/>' +
-        '<path d="M14 50c4-22 48-38 96-37s92 16 90 36" stroke="#94692C" stroke-opacity=".3" stroke-dasharray="2 5"/>' +
+        '<path d="M22 46c1-17 38-31 82-31s88 13 88 31-42 31-86 31-85-14-84-31z" stroke="#6A45A8" stroke-opacity=".5"/>' +
+        '<path d="M14 50c4-22 48-38 96-37s92 16 90 36" stroke="#6A45A8" stroke-opacity=".3" stroke-dasharray="2 5"/>' +
       '</svg>' +
       '<span id="workoutTimer">' + fmtTime(watch.seconds) + '</span>' +
     '</button>' +
@@ -276,7 +276,7 @@ function pintarCap(i) {
 // ===== 06 Encistamento =====
 // Fechou todas as séries, o card não serve mais para nada e só atrapalha a
 // rolagem até o próximo exercício. Ele contrai até virar uma fenda, a fenda
-// brilha em osso e sela numa cápsula. Tocar na cápsula reabre o card.
+// brilha em violeta e sela numa cápsula. Tocar na cápsula reabre o card.
 
 async function encistar(i) {
   const card = cardDo(i), ex = sessao && sessao.exercicios[i];
@@ -294,7 +294,7 @@ async function encistar(i) {
   card.style.height = h0 + 'px';
   await lam.animate([
     { transform: 'scaleY(1)', filter: 'brightness(1)' },
-    { transform: 'scale(1.02, .03)', filter: 'brightness(2.6) sepia(.6)' },
+    { transform: 'scale(1.02, .03)', filter: 'brightness(2.2) saturate(1.6)' },
   ], { duration: 240, easing: 'cubic-bezier(.7,0,.2,1)', fill: 'forwards' }).finished;
   seal.animate([{ opacity: 0, transform: 'scaleX(1)' }, { opacity: 1, transform: 'scaleX(1)', offset: .3 }, { opacity: 0, transform: 'scaleX(.05)' }],
     { duration: 300, easing: 'cubic-bezier(.4,0,1,1)' });
@@ -329,7 +329,7 @@ async function reabrir(i) {
   const lam = card.querySelector('.card');
   card.style.overflow = 'hidden';
   card.animate([{ height: h0 + 'px' }, { height: h1 + 'px' }], { duration: 260, easing: 'cubic-bezier(.2,0,0,1)' });
-  await lam.animate([{ transform: 'scaleY(.03)', filter: 'brightness(2.6) sepia(.6)' }, { transform: 'scaleY(1)', filter: 'brightness(1)' }],
+  await lam.animate([{ transform: 'scaleY(.03)', filter: 'brightness(2.2) saturate(1.6)' }, { transform: 'scaleY(1)', filter: 'brightness(1)' }],
     { duration: 300, easing: 'cubic-bezier(.2,0,0,1)' }).finished;
   card.style.overflow = '';
   delete card.dataset.anim;
