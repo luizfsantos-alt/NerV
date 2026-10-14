@@ -86,8 +86,8 @@ function paint(el) {
   html += '<div class="sess">' +
     '<button class="clock' + (watch.running ? '' : ' paused') + '" type="button" id="clock" aria-label="Tempo de sessão. Toque para pausar ou continuar.">' +
       '<svg viewBox="0 0 220 92" fill="none" aria-hidden="true">' +
-        '<path d="M22 46c1-17 38-31 82-31s88 13 88 31-42 31-86 31-85-14-84-31z" stroke="#6A45A8" stroke-opacity=".5"/>' +
-        '<path d="M14 50c4-22 48-38 96-37s92 16 90 36" stroke="#6A45A8" stroke-opacity=".3" stroke-dasharray="2 5"/>' +
+        '<path d="M22 46c1-17 38-31 82-31s88 13 88 31-42 31-86 31-85-14-84-31z" stroke="#5E22B0" stroke-opacity=".5"/>' +
+        '<path d="M14 50c4-22 48-38 96-37s92 16 90 36" stroke="#5E22B0" stroke-opacity=".3" stroke-dasharray="2 5"/>' +
       '</svg>' +
       '<span id="workoutTimer">' + fmtTime(watch.seconds) + '</span>' +
     '</button>' +
