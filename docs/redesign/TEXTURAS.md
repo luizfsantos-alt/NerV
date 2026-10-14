@@ -1,5 +1,20 @@
 # Texturas para gerar no app do Gemini
 
+## Situação
+
+As cinco foram geradas e estão aplicadas na maquete. Os originais ficam em `texturas/fontes/` e não precisam ser gerados de novo.
+Para mudar cor, contraste ou tamanho, edite e rode `python3 texturas/processar.py`: ele refaz os `.webp` e o bloco embutido na maquete.
+
+| Recurso | Arquivo | Uso |
+|---------|---------|-----|
+| Ósteon | `osteon.webp` (320 px, 38 KB) | Células de série, cápsula, aviso e Mutação. Recortado por contorno orgânico e girado por semente, para que nenhuma célula repita a outra. |
+| Membrana | `membrana.webp` (ladrilho 512 px, 26 KB) | Fundo de todas as telas, respirando com o coração. |
+| Fibra | `fibra.webp` (ladrilho 688×768, 17 KB) | Fundo dos cards. |
+| Veias | `veias.webp` (540×968, 58 KB) | Hemorragia do descanso estourado. Revela-se das bordas para dentro, sob os galhos procedurais, e o centro fica limpo. |
+| Osso esponjoso | `osso.webp` (ladrilho 688×384, 9 KB) | Botões principais. |
+
+## Pedido original
+
 Gere no app do Gemini (gratuito) e salve no Google Drive, na pasta **NerV texturas**, com os nomes indicados.
 Gere 2 ou 3 variações de cada recurso. Eu escolho, recorto, ajusto às cores da paleta e comprimo em WebP.
 

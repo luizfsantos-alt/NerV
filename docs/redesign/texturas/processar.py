@@ -1,0 +1,124 @@
+"""Gera as texturas do redesign a partir das imagens do Gemini em fontes/.
+
+Uso: python3 processar.py   (escreve os .webp ao lado deste arquivo)
+As fontes ficam guardadas para refazer ajustes sem gerar imagens de novo.
+"""
+from pathlib import Path
+import numpy as np
+from PIL import Image, ImageFilter
+
+AQUI = Path(__file__).parent
+FONTES = AQUI / 'fontes'
+
+
+def hexrgb(h):
+    return np.array([int(h[i:i + 2], 16) for i in (1, 3, 5)], float)
+
+
+def luma(a):
+    return a[..., 0] * .299 + a[..., 1] * .587 + a[..., 2] * .114
+
+
+def normaliza(L, lo=1, hi=99):
+    a, b = np.percentile(L, [lo, hi])
+    return np.clip((L - a) / (b - a), 0, 1)
+
+
+def rampa(t, cores):
+    """Mapeia 0..1 numa rampa de cores da paleta."""
+    pos = np.linspace(0, 1, len(cores))
+    out = np.zeros(t.shape + (3,))
+    for c in range(3):
+        out[..., c] = np.interp(t, pos, [hexrgb(h)[c] for h in cores])
+    return out
+
+
+def sem_emenda(a):
+    """Repete sem emenda: mistura a imagem com ela mesma deslocada meia volta,
+    escondendo as bordas originais no centro do deslocamento."""
+    h, w = a.shape[:2]
+    rolada = np.roll(np.roll(a, h // 2, 0), w // 2, 1)
+    y = 1 - np.abs(np.linspace(-1, 1, h))[:, None]
+    x = 1 - np.abs(np.linspace(-1, 1, w))[None, :]
+    peso = np.clip(np.minimum(y, x) * 2.2, 0, 1) ** 1.5
+    if a.ndim == 3:
+        peso = peso[..., None]
+    return a * peso + rolada * (1 - peso)
+
+
+def sem_emenda_fibra(a):
+    """Fibras correm na horizontal: emenda só na horizontal (meia volta, rampa larga)
+    e espelha na vertical, que numa fibra ondulada passa despercebido."""
+    h, w = a.shape[:2]
+    rolada = np.roll(a, w // 2, 1)
+    peso = (np.clip((1 - np.abs(np.linspace(-1, 1, w))) * 1.6, 0, 1) ** 1.2)[None, :, None]
+    a = a * peso + rolada * (1 - peso)
+    return np.concatenate([a, a[::-1]], 0)
+
+
+def salva(a, nome, q):
+    img = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8))
+    img.save(AQUI / nome, 'WEBP', quality=q, method=6)
+    print(f'{nome:16} {img.size[0]}x{img.size[1]}  {(AQUI / nome).stat().st_size // 1024} KB')
+
+
+def carrega(nome, tamanho=None):
+    img = Image.open(FONTES / nome).convert('RGB')
+    if tamanho:
+        img = img.resize(tamanho, Image.LANCZOS)
+    return np.asarray(img, float)
+
+
+# Ósteon: recorta o disco, reforça lamelas e lacunas para ler em 36 px, tinge para o osso da paleta.
+img = Image.open(FONTES / 'osteon.jpg').convert('RGB')
+m = luma(np.asarray(img, float)) > 40
+ys, xs = np.nonzero(m)
+cx, cy = (xs.min() + xs.max()) / 2, (ys.min() + ys.max()) / 2
+r = max(xs.max() - xs.min(), ys.max() - ys.min()) / 2 * .985
+img = img.crop((cx - r, cy - r, cx + r, cy + r)).resize((320, 320), Image.LANCZOS)
+img = img.filter(ImageFilter.UnsharpMask(radius=2, percent=90, threshold=2))
+a = np.asarray(img, float)
+t = normaliza(luma(a), 2, 99.5)
+cor = rampa(t ** 1.1, ['#1c0f08', '#5c3d14', '#94692C', '#D6B57A', '#EEDAA9', '#F6E8C4'])
+a = cor * .78 + a * .22  # guarda um pouco da cor original (o laranja da borda)
+salva(a, 'osteon.webp', 80)
+
+# Membrana: sem emenda, paredes escuras e células na cor do tecido, bem discreta.
+a = sem_emenda(carrega('membrana.jpg', (512, 512)))
+t = normaliza(luma(a), 3, 99.7) ** .8
+salva(rampa(t, ['#0C0709', '#1a0d12', '#3a1823', '#5e2a3a']), 'membrana.webp', 72)
+
+# Fibra: sem emenda, magenta profundo; o topo da rampa fica baixo para o texto do card seguir legível.
+a = sem_emenda_fibra(carrega('fibra.jpg', (688, 384)))
+t = normaliza(luma(a), 1, 99.7)
+salva(rampa(t, ['#120a0e', '#1d0f17', '#3a1430', '#5e1d4c']), 'fibra.webp', 72)
+
+# Veias: entram em modo screen, então o preto some; o vermelho vai para a hemorragia da paleta.
+a = carrega('veias.jpg', (540, 968))
+t = normaliza(luma(a), 1, 99.8)
+salva(rampa(t, ['#000000', '#3a0610', '#a3142a', '#FF2440', '#FFB3BC']), 'veias.webp', 70)
+
+# Osso esponjoso: superfície do botão principal; contraste baixo para o texto escuro por cima.
+# Repete em ladrilho pequeno: os poros ficam miúdos e a rampa estreita mantém o texto legível.
+a = sem_emenda(carrega('osso.jpg', (688, 384)))
+t = normaliza(luma(a), 1, 99)
+salva(rampa(t, ['#c09a5c', '#d2b077', '#dfc28d', '#ead1a2']), 'osso.webp', 74)
+
+# Embute tudo na maquete (arquivo único, abre em qualquer lugar). No app, os .webp vão como arquivos.
+import base64
+import re
+
+def uri(nome):
+    return 'data:image/webp;base64,' + base64.b64encode((AQUI / nome).read_bytes()).decode()
+
+bloco = ('<!-- texturas:inicio -->\n<style>:root {\n' +
+         ''.join(f'  --tex-{n}: url({uri(n + ".webp")});\n' for n in ('membrana', 'fibra', 'veias', 'osso')) +
+         '}</style>\n<svg width="0" height="0" style="position:absolute" aria-hidden="true">'
+         f'<symbol id="os-img" viewBox="0 0 100 100"><image href="{uri("osteon.webp")}" width="100" height="100"/></symbol></svg>\n'
+         '<!-- texturas:fim -->')
+maquete = AQUI.parent / 'maquete.html'
+html = maquete.read_text(encoding='utf-8')
+html, n = re.subn(r'<!-- texturas:inicio -->.*?<!-- texturas:fim -->', lambda _: bloco, html, flags=re.S)
+assert n == 1, 'marcadores do bloco de texturas não encontrados na maquete'
+maquete.write_text(html, encoding='utf-8')
+print(f'maquete.html     {maquete.stat().st_size // 1024} KB')
