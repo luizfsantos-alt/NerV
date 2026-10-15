@@ -69,6 +69,20 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   background: url(../assets/tex/grao.webp) 0 0 / 160px 160px;
 }
 body.fx-off .membrane { opacity: .42; transform: none; }
+/* CRT: linhas de varredura fixas e uma faixa de brilho que desce a tela, como
+   monitor antigo. Só transform na animação, para não repintar a tela a cada quadro. */
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: 86; pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgb(0 0 0 / .28) 0 1px, transparent 1px 3px);
+}
+body::after {
+  content: ""; position: fixed; left: 0; right: 0; top: 0; height: 28vh; z-index: 87; pointer-events: none;
+  background: linear-gradient(180deg, transparent, rgb(255 60 60 / .035) 40%, rgb(255 220 200 / .07) 78%, rgb(255 255 255 / .12) 92%, transparent);
+  mix-blend-mode: screen; transform: translateY(-30vh);
+  animation: crt-roll 7s linear infinite;
+}
+@keyframes crt-roll { to { transform: translateY(110vh); } }
+body.fx-off::before, body.fx-off::after { display: none; }
 
 #app {
   position: relative; z-index: 10; height: 100%; display: flex; flex-direction: column;
@@ -495,5 +509,6 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   .membrane { opacity: .42; transform: none; }
   .wm { font-stretch: 118%; }
   .veins.on .vimg { animation: none; --veil: 42%; }
+  body::after { display: none; }
   *, *::before, *::after { transition-duration: .001ms !important; }
 }

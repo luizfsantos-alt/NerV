@@ -21,7 +21,7 @@
 // rede com elas.
 
 // O prefixo 'nerv2-' fica: é com ele que a limpeza reconhece os caches antigos.
-const VERSION = 'nerv2-v3.2.0';
+const VERSION = 'nerv2-v3.3.0';
 const CACHE = VERSION;
 
 // Rede lenta não pode segurar a abertura do app. Passou disto, o cache assume.
