@@ -88,6 +88,27 @@ body::after {
 }
 @keyframes crt-roll { to { transform: translateY(110vh); } }
 body.fx-off::before, body.fx-off::after { display: none; }
+/* Flicker: um véu escuro que oscila de leve e, uma vez a cada ciclo, afunda,
+   como fonte de monitor ruim. Fica longe do risco para fotossensíveis: a maior
+   queda escurece 16% e acontece uma vez a cada 5,3 s (o limite é 3 por segundo). */
+.flicker { position: fixed; inset: 0; z-index: 88; pointer-events: none; background: #000; opacity: 0;
+  animation: crt-flicker 5.3s steps(1, end) infinite; }
+@keyframes crt-flicker {
+  0% { opacity: .03 } 4% { opacity: 0 } 9% { opacity: .05 } 13% { opacity: .01 }
+  31% { opacity: .04 } 33% { opacity: 0 } 52% { opacity: .03 } 55% { opacity: 0 }
+  71% { opacity: .16 } 72.5% { opacity: .04 } 74% { opacity: .12 } 76% { opacity: 0 }
+  88% { opacity: .05 } 91% { opacity: .01 }
+}
+body.fx-off .flicker { display: none; }
+
+/* Bleed de fósforo: texto e contornos vazam um pouco da própria luz, e o
+   canhão desalinhado deixa um fantasma vermelho e outro ciano. No texto
+   corrido o efeito é contido, para ler entre uma série e outra; nas bordas e
+   nos títulos ele aparece de verdade. Sombras estáticas: não custam quadro. */
+#app, .rest, .modal-overlay, .toast-wrap {
+  text-shadow: -.8px 0 rgb(255 30 50 / .38), .8px 0 rgb(0 200 255 / .25), 0 0 3.5px color-mix(in srgb, currentColor 65%, transparent);
+}
+.ibtn, .icon-act, .seg, .rest .mini { box-shadow: 0 0 9px 2px rgb(160 125 100 / .6), inset 0 0 7px rgb(160 125 100 / .55); }
 
 #app {
   position: relative; z-index: 10; height: 100%; display: flex; flex-direction: column;
@@ -107,6 +128,7 @@ header { position: relative; z-index: 20; padding: calc(12px + var(--safe-top)) 
   font-stretch: calc(118% + var(--beat) * 14%); cursor: pointer; padding: 8px 0;
 }
 .wm em { font-style: normal; color: var(--corante); }
+.wm { text-shadow: none; }  /* o logo fica de fora do bleed até a mesa desenhar o novo */
 body.fx-off .wm { font-stretch: 118%; }
 .top-r { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .readout { font-size: 8.5px; letter-spacing: .08em; color: var(--bone-2); text-align: right; line-height: 1.55; text-transform: uppercase; min-width: 0; }
@@ -145,7 +167,7 @@ h3 {
 .lbl, .card-sub { font-size: 9px; letter-spacing: .1em; color: var(--bone-2); text-transform: uppercase; line-height: 1.7; }
 /* Mais duro: rótulos cerrados e em negrito, títulos com o vermelho vazando por baixo. */
 .lbl, .card-sub, .readout, .ex-sub, label, .am-row span, .stat-label { letter-spacing: .05em; font-weight: 600; }
-h2, .card-title, .modal h3 { text-shadow: 2px 2px 0 #3a0306, 0 0 18px rgb(240 58 58 / .18); }
+h2, .card-title, .modal h3 { text-shadow: -1.2px 0 rgb(255 30 50 / .45), 1.2px 0 rgb(0 200 255 / .3), 0 0 6px rgb(230 220 198 / .5), 2px 2px 0 #3a0306, 0 0 20px rgb(240 58 58 / .25); }
 .lbl b, .card-sub b { color: var(--corante); font-weight: 600; }
 .screen-sub { margin: 0 0 16px; }
 .rd { display: inline-block; font-variant-numeric: tabular-nums; }
@@ -168,7 +190,8 @@ h2, .card-title, .modal h3 { text-shadow: 2px 2px 0 #3a0306, 0 0 18px rgb(240 58
   --cut: 10px; --bc: var(--iron);
   clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
   border: 2px solid var(--bc); background: linear-gradient(180deg, #1a1312, #0c0808);
-  box-shadow: inset 0 0 0 3px #0a0606, inset 0 0 0 4px rgb(107 84 70 / .55), inset 0 1px 0 4px rgb(255 255 255 / .04);
+  /* O chanfro corta qualquer brilho por fora, então o bleed vaza para dentro. */
+  box-shadow: inset 0 0 0 3px #0a0606, inset 0 0 0 4px rgb(107 84 70 / .55), inset 0 0 9px 4px rgb(160 125 100 / .7);
 }
 /* A borda continua na diagonal dos dois chanfros. */
 .btn::after {
@@ -183,7 +206,7 @@ h2, .card-title, .modal h3 { text-shadow: 2px 2px 0 #3a0306, 0 0 18px rgb(240 58
 .btn-primary {
   --bc: #C21A24; color: var(--on-corante); text-shadow: 0 1px 0 #2a0205;
   background: linear-gradient(180deg, #9A1219 0%, var(--corante-lo) 45%, #4A060B 100%);
-  box-shadow: inset 0 0 0 3px #3a0408, inset 0 0 0 4px rgb(255 90 90 / .35), inset 0 2px 0 4px rgb(255 255 255 / .08);
+  box-shadow: inset 0 0 0 3px #3a0408, inset 0 0 0 4px rgb(255 90 90 / .4), inset 0 0 10px 4px rgb(255 80 80 / .85);
 }
 .btn-primary svg { stroke-width: 2; }
 .btn-secondary:hover { --bc: var(--bone-2); }
@@ -198,7 +221,8 @@ h2, .card-title, .modal h3 { text-shadow: 2px 2px 0 #3a0306, 0 0 18px rgb(240 58
 .card {
   position: relative; isolation: isolate; overflow: hidden;
   background: var(--flesh-1); border: 2px solid var(--iron);
-  box-shadow: inset 0 0 0 4px var(--flesh-1), inset 0 0 0 5px rgb(74 26 26 / .9), 0 10px 30px rgb(0 0 0 / .6);
+  box-shadow: inset 0 0 0 4px var(--flesh-1), inset 0 0 0 5px rgb(74 26 26 / .9), inset 0 0 12px 1px rgb(160 125 100 / .55),
+              0 0 10px 2px rgb(160 125 100 / .6), 0 10px 30px rgb(0 0 0 / .6);
   padding: 18px 16px 16px; margin-bottom: 12px;
 }
 /* Fibras do tecido por trás do conteúdo... */
@@ -215,7 +239,7 @@ h2, .card-title, .modal h3 { text-shadow: 2px 2px 0 #3a0306, 0 0 18px rgb(240 58
 }
 /* Carimbo de arquivo, meio torto. */
 .card-tag {
-  display: inline-block; padding: 2px 7px 1px; border: 1.5px solid var(--corante); box-shadow: inset 0 0 6px rgb(240 58 58 / .25);
+  display: inline-block; padding: 2px 7px 1px; border: 1.5px solid var(--corante); box-shadow: inset 0 0 8px rgb(240 58 58 / .5), 0 0 9px 1px rgb(240 58 58 / .6);
   font-size: 9px; font-weight: 700; letter-spacing: .08em; color: var(--corante); text-transform: uppercase;
   transform: rotate(-1.5deg); transform-origin: left;
 }
@@ -240,6 +264,7 @@ h2, .card-title, .modal h3 { text-shadow: 2px 2px 0 #3a0306, 0 0 18px rgb(240 58
 .am-row {
   display: grid; grid-template-columns: 46px minmax(0, 1fr) 20px; gap: 12px; align-items: center;
   width: 100%; text-align: left; padding: 12px 0; border-top: 1px solid var(--vein); min-height: 64px;
+  box-shadow: 0 -1px 5px -1px rgb(240 58 58 / .45);
 }
 .am-row .lt { font-family: var(--disp); font-weight: 900; font-stretch: 60%; font-size: 44px; line-height: .8; color: var(--corante); overflow: hidden; }
 .am-row b { display: block; font-family: var(--disp); font-weight: 750; font-stretch: 82%; font-size: 18px; text-transform: uppercase; line-height: 1.05; overflow-wrap: anywhere; }
@@ -317,6 +342,9 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 .fld input::placeholder { font-family: var(--mono); font-size: 10px; font-weight: 400; color: var(--bone-3); letter-spacing: .04em; }
 .fld span { font-size: 8.5px; color: var(--bone-2); letter-spacing: .06em; }
 .fld:focus-within { border-bottom-color: var(--corante); }
+/* A linha de baixo também vaza luz. */
+.fld { background: linear-gradient(transparent calc(100% - 8px), rgb(154 138 116 / .3)); }
+.fld:focus-within, .set.done .fld { background: linear-gradient(transparent calc(100% - 9px), rgb(240 58 58 / .42)); }
 .set.done .n { color: var(--corante); }
 .set.done .fld { border-bottom-color: var(--corante-lo); }
 .set.done .fld input { color: var(--bone-2); }
@@ -372,7 +400,8 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 .rest { --cond: var(--fine); }
 .rest.caution { --cond: var(--caution); }
 .rest .r1 { display: flex; align-items: center; gap: 10px; }
-.rest .tag { font-size: 8.5px; letter-spacing: .1em; padding: 3px 6px; border: 1px solid var(--cond); color: var(--cond); font-weight: 600; text-transform: uppercase; flex-shrink: 0; }
+.rest .tag { font-size: 8.5px; letter-spacing: .1em; padding: 3px 6px; border: 1px solid var(--cond); color: var(--cond); font-weight: 600; text-transform: uppercase; flex-shrink: 0;
+  box-shadow: 0 0 9px 1px var(--cond), inset 0 0 6px var(--cond); }
 .rest .cnt { font-size: 36px; font-weight: 700; font-stretch: 80%; font-variant-numeric: tabular-nums; line-height: 1; }
 .rest .who { margin-left: auto; text-align: right; font-size: 8.5px; letter-spacing: .08em; color: var(--bone-2); line-height: 1.55; text-transform: uppercase; max-width: 46%; min-width: 0; }
 .rest .who span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -435,7 +464,8 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 
 /* ===== STATS ===== */
 .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0; }
-.stat-card { position: relative; background: var(--flesh-1); border: 2px solid var(--iron); padding: 14px 12px 12px; }
+.stat-card { position: relative; background: var(--flesh-1); border: 2px solid var(--iron); padding: 14px 12px 12px;
+  box-shadow: inset 0 0 12px 1px rgb(160 125 100 / .55), 0 0 10px 2px rgb(160 125 100 / .6); }
 .stat-value { font-family: var(--disp); font-weight: 850; font-stretch: 66%; font-size: 40px; line-height: .9; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .stat-value.hot { background: linear-gradient(90deg, var(--t3), var(--t4)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .stat-label { font-size: 9px; color: var(--bone-2); text-transform: uppercase; letter-spacing: .1em; margin-top: 6px; }
@@ -543,6 +573,6 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   .membrane { opacity: .42; transform: none; }
   .wm { font-stretch: 118%; }
   .veins.on .vimg { animation: none; --veil: 42%; }
-  body::after { display: none; }
+  body::after, .flicker { display: none; }
   *, *::before, *::after { transition-duration: .001ms !important; }
 }

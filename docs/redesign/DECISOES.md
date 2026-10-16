@@ -24,6 +24,10 @@ Referência visual e de movimento: [`maquete.html`](maquete.html).
   6. **Tipografia mais dura:** rótulos cerrados e em negrito, títulos com sombra vermelha. A fonte não mudou.
   7. **Impacto:** fechar a série faz o card tremer e acender em vermelho, com vibração mais forte.
   8. **Mutação:** palavra com aberração cromática, calor sem violeta.
+- **Monitor ruim (3.5.0):** dois efeitos por cima do CRT.
+  - **Flicker:** um véu escuro que oscila de leve e afunda uma vez a cada 5,3 s. A maior queda escurece 16%, longe do limite de risco para fotossensíveis (3 piscadas fortes por segundo). O "Sedar" e o "menos movimento" do sistema desligam.
+  - **Bleed de fósforo:** texto e contornos vazam a própria luz, com um fantasma vermelho e outro ciano. A mesa comparou dois níveis e escolheu o combinado: bordas, carimbos e títulos no nível forte, texto corrido num meio-termo para continuar legível. O logo fica de fora.
+  - **Fora:** o desfoque nas bordas da tela. Ele teria de ser refeito a cada quadro em cima do fundo que pulsa, o que pesa na bateria e trava a rolagem. A vinheta continua como na 3.4.0.
 - **Logo:** em aberto. Testamos Anybody condensada, uma serifada estilo RE4 e um stencil militar; a mesa vai desenhar um logo próprio. O ícone do app continua violeta até lá.
 
 ## Próximos passos

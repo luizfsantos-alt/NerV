@@ -225,7 +225,7 @@ async function toggleSet(i, j) {
       { transform: 'translateX(3px)', offset: .45 }, { transform: 'translateX(-2px)', offset: .7 }, { transform: 'none' },
     ], { duration: 240, easing: 'ease-out' });
     lam.animate([
-      { offset: .15, borderColor: '#F03A3A', boxShadow: 'inset 0 0 0 4px #0E0909, inset 0 0 60px rgb(240 58 58 / .45), 0 0 24px rgb(240 58 58 / .35)' },
+      { offset: .15, borderColor: '#F03A3A', boxShadow: 'inset 0 0 0 4px #0E0909, inset 0 0 60px rgb(240 58 58 / .45), 0 0 14px 3px rgb(240 58 58 / .55)' },
     ], { duration: 320, easing: 'ease-out' });
   }
 
