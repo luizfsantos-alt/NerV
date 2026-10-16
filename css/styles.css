@@ -3,26 +3,31 @@
 /* NerV — Espécime em Metabolismo.
    O app é um organismo sob a lente: o fundo é tecido vivo, os cards são
    lâminas, cada série é uma célula que se divide ao ser fechada. A referência
-   visual e de movimento é docs/redesign/maquete.html. */
+   visual e de movimento é docs/redesign/maquete.html. Desde a 3.4 o organismo
+   está infectado: vermelho-sangue, chapa e ferrugem, monitor CRT, na linha de
+   Resident Evil 3 e 4. */
 
 :root {
   color-scheme: dark;
   /* Organismo */
-  --flesh-0: #0C0709;  /* fundo, preto-sangue */
-  --flesh-1: #170D11;  /* tecido: cards */
-  --flesh-2: #24141A;  /* membrana: campos, superfícies */
-  --vein:    #4A2530;  /* linhas, bordas, estrias */
-  --bone:    #EEE3CA;  /* texto principal */
-  --bone-2:  #A8977A;  /* texto secundário */
-  --bone-3:  #6e5c52;  /* placeholder, desligado */
-  /* Lente: violeta de contraste, o corante da lâmina. É a cor do que o app
-     destaca (marcas, rótulos, próxima série, botões); o resto é tecido. */
-  --corante:    #9B5DE5;  /* o mais vivo com 4,5:1 sobre os cards, para servir de texto */
-  --corante-hi: #C9A2FF;
-  --corante-lo: #5E22B0;  /* cristal violeta: botões, só com texto claro */
-  --on-corante: #F6EEFF;  /* texto sobre o corante */
+  --flesh-0: #080506;  /* fundo, preto-sangue */
+  --flesh-1: #0E0909;  /* tecido: cards */
+  --flesh-2: #1C1111;  /* membrana: campos, superfícies */
+  --vein:    #4A1A1A;  /* linhas, bordas, estrias */
+  --iron:    #6B5446;  /* chapa e ferrugem: bordas de botões e cards */
+  --bone:    #E6DCC6;  /* texto principal */
+  --bone-2:  #9A8A74;  /* texto secundário */
+  --bone-3:  #5E4E44;  /* placeholder, desligado */
+  /* Corante: vermelho-sangue. É a cor do que o app destaca (marcas, rótulos,
+     próxima série, botões); o resto é tecido e ferro. */
+  --corante:    #F03A3A;  /* 4,9:1 sobre os cards, serve de texto */
+  --corante-hi: #FF7A6A;
+  --corante-lo: #7A0D14;  /* chapa vinho: botões, só com texto claro (8,7:1) */
+  --on-corante: #F4EDE0;  /* texto sobre o corante */
+  /* Condição, como no ECG de Resident Evil: só o descanso */
+  --fine: #3BD16F; --caution: #E8B020;
   /* Rampa térmica: só o corpo (esforço, calor) */
-  --t1: #2A1846; --t2: #7A1C5E; --t3: #D83A2E; --t4: #FF9A1F; --t5: #FFF2D2;
+  --t1: #1E0607; --t2: #5E0A12; --t3: #C41A1A; --t4: #FF7A1F; --t5: #FFE2C2;
   --ramp: linear-gradient(90deg, var(--t1), var(--t2) 30%, var(--t3) 60%, var(--t4) 85%, var(--t5));
   /* Hemorragia: só a cobrança do descanso e o que é destrutivo */
   --hemo: #FF2440;
@@ -61,22 +66,41 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   opacity: calc(.62 + var(--beat) * .3); transform: scale(calc(1 + var(--beat) * .012));
   background:
     url(../assets/tex/membrana.webp) 0 0 / 256px 256px,
-    radial-gradient(120% 70% at 75% 15%, #2c0f19 0, transparent 60%),
-    radial-gradient(90% 60% at 10% 95%, #24080f 0, transparent 70%);
+    radial-gradient(120% 70% at 75% 15%, #2a0808 0, transparent 60%),
+    radial-gradient(90% 60% at 10% 95%, #1e0505 0, transparent 70%);
 }
 .grain {
-  position: fixed; inset: 0; z-index: 90; pointer-events: none; opacity: .14; mix-blend-mode: overlay;
+  position: fixed; inset: 0; z-index: 90; pointer-events: none; opacity: .22; mix-blend-mode: overlay;
   background: url(../assets/tex/grao.webp) 0 0 / 160px 160px;
 }
 body.fx-off .membrane { opacity: .42; transform: none; }
+/* CRT: linhas de varredura fixas e uma faixa de brilho que desce a tela, como
+   monitor antigo. Só transform na animação, para não repintar a tela a cada quadro. */
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: 86; pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgb(0 0 0 / .28) 0 1px, transparent 1px 3px);
+}
+body::after {
+  content: ""; position: fixed; left: 0; right: 0; top: 0; height: 28vh; z-index: 87; pointer-events: none;
+  background: linear-gradient(180deg, transparent, rgb(255 60 60 / .035) 40%, rgb(255 220 200 / .07) 78%, rgb(255 255 255 / .12) 92%, transparent);
+  mix-blend-mode: screen; transform: translateY(-30vh);
+  animation: crt-roll 7s linear infinite;
+}
+@keyframes crt-roll { to { transform: translateY(110vh); } }
+body.fx-off::before, body.fx-off::after { display: none; }
 
 #app {
   position: relative; z-index: 10; height: 100%; display: flex; flex-direction: column;
   padding-left: var(--safe-left); padding-right: var(--safe-right);
 }
+/* Vinheta: as bordas da tela afundam no escuro, como a câmera do RE4. */
+#app::after {
+  content: ""; position: fixed; inset: 0; z-index: 85; pointer-events: none;
+  background: radial-gradient(130% 95% at 50% 45%, transparent 45%, rgb(0 0 0 / .55) 75%, rgb(0 0 0 / .9) 100%);
+}
 
 /* ===== TOPO ===== */
-header { position: relative; z-index: 20; padding: calc(12px + var(--safe-top)) 16px 0; background: linear-gradient(var(--flesh-0) 70%, transparent); }
+header { position: relative; z-index: 20; padding: calc(12px + var(--safe-top)) 16px 0; background: linear-gradient(#050303 72%, transparent); }
 .top-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 44px; }
 .wm {
   font-family: var(--disp); font-weight: 900; font-size: 25px; letter-spacing: .06em; line-height: 1;
@@ -88,12 +112,12 @@ body.fx-off .wm { font-stretch: 118%; }
 .readout { font-size: 8.5px; letter-spacing: .08em; color: var(--bone-2); text-align: right; line-height: 1.55; text-transform: uppercase; min-width: 0; }
 .readout span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .readout b { color: var(--corante); font-weight: 600; font-variant-numeric: tabular-nums; }
-.ibtn { width: 44px; height: 44px; flex-shrink: 0; border: 1px solid var(--bone-2); display: grid; place-items: center; font-size: 8px; letter-spacing: .08em; text-transform: uppercase; }
+.ibtn { width: 44px; height: 44px; flex-shrink: 0; border: 1px solid var(--iron); display: grid; place-items: center; font-size: 8px; letter-spacing: .08em; text-transform: uppercase; }
 .ibtn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.5; }
 .ibtn[aria-pressed="true"] { background: var(--bone); color: var(--flesh-0); border-color: var(--bone); }
 .ruler { height: 10px; margin-top: 10px; opacity: .8;
   background: repeating-linear-gradient(90deg, var(--vein) 0 1px, transparent 1px 8px) bottom/100% 5px repeat-x,
-              repeating-linear-gradient(90deg, var(--bone-2) 0 1px, transparent 1px 40px) bottom/100% 10px repeat-x; }
+              repeating-linear-gradient(90deg, var(--corante-lo) 0 2px, transparent 2px 40px) bottom/100% 10px repeat-x; }
 
 main {
   flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; position: relative;
@@ -107,7 +131,7 @@ body.resting main { padding-bottom: calc(160px + var(--safe-bottom)); }
 /* Varredura (02): feixe de luz da lente que desce ao entrar numa tela. */
 .beam { position: fixed; left: 0; right: 0; height: 3px; z-index: 30; pointer-events: none; opacity: 0;
   background: linear-gradient(90deg, transparent, var(--corante) 15%, var(--corante-hi) 50%, var(--corante) 85%, transparent);
-  box-shadow: 0 0 20px 6px rgb(155 93 229 / .35), 0 -40px 60px -20px rgb(155 93 229 / .18); }
+  box-shadow: 0 0 20px 6px rgb(240 58 58 / .35), 0 -40px 60px -20px rgb(240 58 58 / .18); }
 
 /* ===== TIPOGRAFIA ===== */
 h2 {
@@ -119,6 +143,9 @@ h3 {
   text-transform: uppercase; margin: 0 0 10px; text-wrap: balance;
 }
 .lbl, .card-sub { font-size: 9px; letter-spacing: .1em; color: var(--bone-2); text-transform: uppercase; line-height: 1.7; }
+/* Mais duro: rótulos cerrados e em negrito, títulos com o vermelho vazando por baixo. */
+.lbl, .card-sub, .readout, .ex-sub, label, .am-row span, .stat-label { letter-spacing: .05em; font-weight: 600; }
+h2, .card-title, .modal h3 { text-shadow: 2px 2px 0 #3a0306, 0 0 18px rgb(240 58 58 / .18); }
 .lbl b, .card-sub b { color: var(--corante); font-weight: 600; }
 .screen-sub { margin: 0 0 16px; }
 .rd { display: inline-block; font-variant-numeric: tabular-nums; }
@@ -135,61 +162,75 @@ h3 {
   position: relative; overflow: hidden;
   display: flex; align-items: center; justify-content: center; gap: 10px;
   width: 100%; min-height: 52px; padding: 14px 16px; margin-bottom: 10px;
-  font-family: var(--disp); font-weight: 800; font-stretch: 88%; font-size: 15px; letter-spacing: .14em; text-transform: uppercase;
-  border: 1px solid var(--bone-2); color: var(--bone); background: rgb(12 7 9 / .55); user-select: none;
+  font-family: var(--disp); font-weight: 800; font-stretch: 88%; font-size: 15px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--bone); user-select: none;
+  /* Chapa: cantos chanfrados, borda dupla e bisel, como a maleta do RE4. */
+  --cut: 10px; --bc: var(--iron);
+  clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
+  border: 2px solid var(--bc); background: linear-gradient(180deg, #1a1312, #0c0808);
+  box-shadow: inset 0 0 0 3px #0a0606, inset 0 0 0 4px rgb(107 84 70 / .55), inset 0 1px 0 4px rgb(255 255 255 / .04);
+}
+/* A borda continua na diagonal dos dois chanfros. */
+.btn::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background:
+    linear-gradient(135deg, transparent calc(50% + .5px), var(--bc) calc(50% + .5px) calc(50% + 2.5px), transparent calc(50% + 2.5px)) 0 0 / var(--cut) var(--cut) no-repeat,
+    linear-gradient(-45deg, transparent calc(50% + .5px), var(--bc) calc(50% + .5px) calc(50% + 2.5px), transparent calc(50% + 2.5px)) 100% 100% / var(--cut) var(--cut) no-repeat;
 }
 .btn svg { width: 16px; height: 16px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 1.5; }
-.btn:active { transform: translateY(1px); }
+.btn:active { transform: translateY(1px); filter: brightness(1.6) saturate(1.3); }
 .btn:disabled { opacity: .45; cursor: not-allowed; }
 .btn-primary {
-  background: var(--corante-lo); color: var(--on-corante); border-color: var(--corante);
-  background-image: linear-gradient(180deg, rgb(255 255 255 / .12), transparent 45%, rgb(20 4 40 / .3)), url(../assets/tex/botao.webp);
-  background-size: 100% 100%, 256px 256px;
+  --bc: #C21A24; color: var(--on-corante); text-shadow: 0 1px 0 #2a0205;
+  background: linear-gradient(180deg, #9A1219 0%, var(--corante-lo) 45%, #4A060B 100%);
+  box-shadow: inset 0 0 0 3px #3a0408, inset 0 0 0 4px rgb(255 90 90 / .35), inset 0 2px 0 4px rgb(255 255 255 / .08);
 }
 .btn-primary svg { stroke-width: 2; }
-.btn-secondary:hover { border-color: var(--bone); }
-.btn-ghost { border-style: dashed; color: var(--bone-2); }
+.btn-secondary:hover { --bc: var(--bone-2); }
+.btn-ghost { --bc: var(--vein); color: var(--bone-2); }
 .btn-ghost:hover { color: var(--bone); }
-.btn-danger { border-color: var(--hemo); color: var(--hemo); background: rgb(40 4 10 / .6); }
-.btn-small { width: auto; min-height: 44px; padding: 10px 16px; font-size: 13px; letter-spacing: .12em; margin-bottom: 0; }
+.btn-danger { --bc: var(--hemo); color: var(--hemo); background: linear-gradient(180deg, #2a060c, #14030a); }
+.btn-small { --cut: 8px; width: auto; min-height: 44px; padding: 10px 16px; font-size: 13px; letter-spacing: .12em; margin-bottom: 0; }
 .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
 .btn-row .btn { flex: 1; }
 
 /* ===== LÂMINA (card) ===== */
 .card {
   position: relative; isolation: isolate; overflow: hidden;
-  background: var(--flesh-1); border: 1px solid var(--vein);
+  background: var(--flesh-1); border: 2px solid var(--iron);
+  box-shadow: inset 0 0 0 4px var(--flesh-1), inset 0 0 0 5px rgb(74 26 26 / .9), 0 10px 30px rgb(0 0 0 / .6);
   padding: 18px 16px 16px; margin-bottom: 12px;
 }
 /* Fibras do tecido por trás do conteúdo... */
 .card::before {
-  content: ""; position: absolute; inset: -40px; z-index: -1; pointer-events: none; opacity: .9; rotate: -7deg;
+  content: ""; position: absolute; inset: -40px; z-index: -1; pointer-events: none; opacity: .22; rotate: -7deg;
   background: url(../assets/tex/fibra.webp) 0 0 / 344px 384px;
 }
-/* ...e as marcas de registro da lâmina nos quatro cantos. */
+/* ...e um rebite em cada canto, como as caixas do inventário. */
 .card::after {
-  content: ""; position: absolute; inset: 5px; pointer-events: none; z-index: 1;
-  --c: var(--corante);
-  background:
-    linear-gradient(var(--c), var(--c)) 0 0 / 12px 1.5px, linear-gradient(var(--c), var(--c)) 0 0 / 1.5px 12px,
-    linear-gradient(var(--c), var(--c)) 100% 0 / 12px 1.5px, linear-gradient(var(--c), var(--c)) 100% 0 / 1.5px 12px,
-    linear-gradient(var(--c), var(--c)) 0 100% / 12px 1.5px, linear-gradient(var(--c), var(--c)) 0 100% / 1.5px 12px,
-    linear-gradient(var(--c), var(--c)) 100% 100% / 12px 1.5px, linear-gradient(var(--c), var(--c)) 100% 100% / 1.5px 12px;
+  content: ""; position: absolute; inset: 9px; pointer-events: none; z-index: 1;
+  --rebite: radial-gradient(circle, #b9a48c 0 1.5px, #3a2c24 2px 3.5px, transparent 4px);
+  background: var(--rebite) 0 0 / 9px 9px, var(--rebite) 100% 0 / 9px 9px, var(--rebite) 0 100% / 9px 9px, var(--rebite) 100% 100% / 9px 9px;
   background-repeat: no-repeat;
 }
-.card-tag { font-size: 9px; letter-spacing: .1em; color: var(--corante); text-transform: uppercase; }
+/* Carimbo de arquivo, meio torto. */
+.card-tag {
+  display: inline-block; padding: 2px 7px 1px; border: 1.5px solid var(--corante); box-shadow: inset 0 0 6px rgb(240 58 58 / .25);
+  font-size: 9px; font-weight: 700; letter-spacing: .08em; color: var(--corante); text-transform: uppercase;
+  transform: rotate(-1.5deg); transform-origin: left;
+}
 .card-title {
   font-family: var(--disp); font-weight: 850; font-stretch: 70%; font-size: 32px; line-height: .92;
   text-transform: uppercase; margin: 4px 0 6px; padding-right: 96px; overflow-wrap: anywhere; text-wrap: balance;
 }
 .ghost-number {
   position: absolute; right: 14px; bottom: 6px; pointer-events: none;
-  font-family: var(--disp); font-weight: 900; font-stretch: 60%; font-size: 72px; line-height: .8; color: rgb(155 93 229 / .08);
+  font-family: var(--disp); font-weight: 900; font-stretch: 60%; font-size: 72px; line-height: .8; color: rgb(240 58 58 / .07);
 }
 .card-actions { position: absolute; top: 10px; right: 10px; display: flex; gap: 6px; z-index: 2; }
 .icon-act {
   width: 40px; height: 40px; display: grid; place-items: center;
-  border: 1px solid var(--vein); background: rgb(12 7 9 / .6); color: var(--bone-2);
+  border: 1px solid var(--iron); background: rgb(12 7 9 / .6); color: var(--bone-2);
 }
 .icon-act svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.5; }
 .icon-act:hover { color: var(--bone); border-color: var(--bone-2); }
@@ -198,7 +239,7 @@ h3 {
 /* Linhas de treino dentro da ficha (A, B, C...) */
 .am-row {
   display: grid; grid-template-columns: 46px minmax(0, 1fr) 20px; gap: 12px; align-items: center;
-  width: 100%; text-align: left; padding: 12px 0; border-top: 1px dashed var(--vein); min-height: 64px;
+  width: 100%; text-align: left; padding: 12px 0; border-top: 1px solid var(--vein); min-height: 64px;
 }
 .am-row .lt { font-family: var(--disp); font-weight: 900; font-stretch: 60%; font-size: 44px; line-height: .8; color: var(--corante); overflow: hidden; }
 .am-row b { display: block; font-family: var(--disp); font-weight: 750; font-stretch: 82%; font-size: 18px; text-transform: uppercase; line-height: 1.05; overflow-wrap: anywhere; }
@@ -266,7 +307,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 .last-hint { font-size: 9px; letter-spacing: .05em; color: var(--bone-2); margin: 6px 0 10px; line-height: 1.6; }
 .last-hint b { color: var(--bone); font-weight: 500; }
 
-.set { display: grid; grid-template-columns: 26px 1fr 1fr 44px; align-items: end; gap: 10px; padding: 7px 0; border-top: 1px dashed var(--vein); }
+.set { display: grid; grid-template-columns: 26px 1fr 1fr 44px; align-items: end; gap: 10px; padding: 7px 0; border-top: 1px solid rgb(74 26 26 / .7); }
 .set .n { font-size: 10px; color: var(--bone-2); padding-bottom: 7px; }
 .fld { display: flex; align-items: baseline; gap: 5px; border-bottom: 1.5px solid var(--bone-2); padding: 0 2px 4px; min-height: 36px; margin: 0; text-transform: none; letter-spacing: 0; }
 .fld input {
@@ -288,12 +329,12 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 .cell .rep { filter: grayscale(.85) brightness(.5); opacity: .55; transform: scale(.78); transition: filter .25s, opacity .25s, transform .25s; }
 .cell .mit { opacity: 0; }
 .set.next .cell .rep { filter: none; opacity: 1; transform: scale(calc(.8 + var(--beat) * .1)); }
-.set.next .cell::before { content: ""; position: absolute; inset: 4px; border-radius: 50%; box-shadow: 0 0 calc(6px + var(--beat) * 10px) rgb(155 93 229 / calc(.15 + var(--beat) * .3)); }
+.set.next .cell::before { content: ""; position: absolute; inset: 4px; border-radius: 50%; box-shadow: 0 0 calc(6px + var(--beat) * 10px) rgb(240 58 58 / calc(.2 + var(--beat) * .35)); }
 .set.done .cell .rep { opacity: 0; }
-.set.done .cell .mit { opacity: 1; filter: drop-shadow(0 0 4px rgb(155 93 229 / .35)); }
+.set.done .cell .mit { opacity: 1; filter: drop-shadow(0 0 4px rgb(240 58 58 / .45)); }
 .cell:focus-visible { outline-offset: 0; }
 .ripple { position: absolute; inset: 5px; border-radius: 50%; border: 1.5px solid var(--corante); pointer-events: none; opacity: 0; }
-.spark { position: absolute; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: var(--corante-hi); box-shadow: 0 0 10px 2px var(--corante), 0 0 22px 4px rgb(155 93 229 / .4); pointer-events: none; z-index: 5; }
+.spark { position: absolute; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: var(--corante-hi); box-shadow: 0 0 10px 2px var(--corante), 0 0 22px 4px rgb(240 58 58 / .4); pointer-events: none; z-index: 5; }
 .rest-btn { margin: 12px 0 0; min-height: 46px; font-size: 13px; }
 .hide-ex { display: none; margin: 8px 0 0; min-height: 44px; font-size: 12px; }
 .ex.all-done .hide-ex { display: flex; }
@@ -303,14 +344,14 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   display: none; width: 100%; align-items: center; gap: 10px; padding: 10px 12px; min-height: 52px; text-align: left;
   border: 1px solid var(--vein); background: var(--flesh-1); border-radius: 22px 2px 22px 2px;
 }
-.cap .dot { width: 30px; height: 30px; flex-shrink: 0; filter: drop-shadow(0 0 5px rgb(155 93 229 / .35)); }
+.cap .dot { width: 30px; height: 30px; flex-shrink: 0; filter: drop-shadow(0 0 5px rgb(240 58 58 / .45)); }
 .cap .dot img, .mit-ico { width: 100%; height: 100%; display: block; }
 .cap b { font-family: var(--disp); font-weight: 750; font-stretch: 78%; font-size: 15px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .cap .cap-meta { margin-left: auto; font-size: 8.5px; letter-spacing: .06em; color: var(--bone-2); white-space: nowrap; text-transform: uppercase; }
 .ex.cyst > .card { display: none; }
 .ex.cyst > .cap { display: flex; }
 .seal { position: absolute; left: 0; right: 0; top: 50%; height: 2px; margin-top: -1px; z-index: 6; pointer-events: none; opacity: 0;
-  background: linear-gradient(90deg, transparent, var(--corante-hi) 20%, #f6efff 50%, var(--corante-hi) 80%, transparent); box-shadow: 0 0 18px 4px rgb(201 162 255 / .6); }
+  background: linear-gradient(90deg, transparent, var(--corante-hi) 20%, #FFE6DE 50%, var(--corante-hi) 80%, transparent); box-shadow: 0 0 18px 4px rgb(255 122 106 / .6); }
 
 /* Cronômetro grande (cardio) */
 .timer {
@@ -323,24 +364,27 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 .rest {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 70;
   padding: 12px calc(16px + var(--safe-right)) calc(14px + var(--safe-bottom)) calc(16px + var(--safe-left));
-  background: linear-gradient(180deg, #1d1014, #110a0c); border-top: 2px solid var(--corante);
+  background: linear-gradient(180deg, #120b0b, #070404); border-top: 2px solid var(--cond);
   transform: translateY(105%); visibility: hidden; transition: transform 200ms var(--exit), visibility 0s 200ms;
 }
 .rest.active { transform: none; visibility: visible; transition: transform 320ms var(--std); }
+/* Condição, como no ECG de RE3: Estável (verde), Atenção (âmbar), Perigo (estourado). */
+.rest { --cond: var(--fine); }
+.rest.caution { --cond: var(--caution); }
 .rest .r1 { display: flex; align-items: center; gap: 10px; }
-.rest .tag { font-size: 8.5px; letter-spacing: .1em; padding: 3px 6px; border: 1px solid var(--corante); color: var(--corante); font-weight: 600; text-transform: uppercase; flex-shrink: 0; }
+.rest .tag { font-size: 8.5px; letter-spacing: .1em; padding: 3px 6px; border: 1px solid var(--cond); color: var(--cond); font-weight: 600; text-transform: uppercase; flex-shrink: 0; }
 .rest .cnt { font-size: 36px; font-weight: 700; font-stretch: 80%; font-variant-numeric: tabular-nums; line-height: 1; }
 .rest .who { margin-left: auto; text-align: right; font-size: 8.5px; letter-spacing: .08em; color: var(--bone-2); line-height: 1.55; text-transform: uppercase; max-width: 46%; min-width: 0; }
 .rest .who span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.rest .who b { color: var(--corante); font-weight: 600; font-variant-numeric: tabular-nums; }
+.rest .who b { color: var(--cond); font-weight: 600; font-variant-numeric: tabular-nums; }
 .ecg { position: relative; height: 34px; overflow: hidden; margin: 6px 0 4px; }
 .ecg svg { position: absolute; left: 0; top: 0; height: 34px; width: 780px; }
-.ecg path { stroke: var(--corante); }
+.ecg path { stroke: var(--cond); filter: drop-shadow(0 0 4px var(--cond)); }
 .rest .r2 { display: flex; align-items: center; gap: 8px; }
 .rest .left { flex: 1; height: 3px; background: var(--vein); position: relative; }
-.rest .left i { position: absolute; inset: 0; background: var(--corante); transform-origin: left; transition: transform 250ms linear; }
-.rest .mini { border: 1px solid var(--bone-2); padding: 0 14px; height: 44px; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; }
-.rest.over { border-top-color: var(--hemo); background: linear-gradient(180deg, rgb(70 6 18 / calc(.85 + var(--beat) * .15)), #14050a); }
+.rest .left i { position: absolute; inset: 0; background: var(--cond); transform-origin: left; transition: transform 250ms linear; }
+.rest .mini { border: 1px solid var(--iron); padding: 0 14px; height: 44px; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; }
+.rest.over { --cond: var(--hemo); border-top-color: var(--hemo); background: linear-gradient(180deg, rgb(70 6 18 / calc(.85 + var(--beat) * .15)), #14050a); }
 .rest.over .tag { background: var(--hemo); color: #12060a; border-color: var(--hemo); }
 .rest.over .cnt { color: #fff; text-shadow: 0 0 calc(10px + var(--beat) * 16px) var(--hemo); }
 .rest.over .ecg path { stroke: var(--hemo); }
@@ -372,22 +416,26 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 .mut .m-cel { left: 45px; top: 0; width: 150px; height: 150px; }
 .mut .m-mit { left: 0; top: -45px; width: 240px; height: 240px; opacity: 0; }
 .mut .m-crom { left: -40px; top: 47px; width: 320px; height: auto; opacity: 0; mix-blend-mode: screen; }
-.mut .word { font-family: var(--disp); font-weight: 900; font-size: 66px; line-height: .85; text-transform: uppercase; color: var(--bone); font-stretch: 72%; }
-.mut .sub { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--corante); margin-top: 12px; }
+.mut .word {
+  font-family: var(--disp); font-weight: 900; font-size: 66px; line-height: .85; text-transform: uppercase; color: var(--bone); font-stretch: 72%; letter-spacing: .02em;
+  /* Aberração cromática de fita velha. */
+  text-shadow: -3px 0 0 rgb(255 30 40 / .85), 3px 0 0 rgb(0 220 255 / .55), 0 0 30px rgb(255 30 40 / .5);
+}
+.mut .sub { font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--bone); margin-top: 12px; }
 .mut .list { font-size: 11px; letter-spacing: .06em; line-height: 1.9; margin-top: 12px; color: var(--bone); font-variant-numeric: tabular-nums; }
-.mut .list b { color: var(--t4); font-weight: 600; }
+.mut .list b { color: #FFD0A0; font-weight: 600; }
 .mut .skip { position: absolute; bottom: calc(24px + var(--safe-bottom)); left: 0; right: 0; font-size: 8.5px; letter-spacing: .12em; color: var(--bone-2); z-index: 2; }
 
 /* Resultado do cardio */
 .pace-screen { position: fixed; inset: 0; z-index: 100; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; background: var(--flesh-0); }
 .pace-screen.active { display: flex; }
-.pace-screen::before { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, rgb(255 154 31 / .25), rgb(122 28 94 / .2) 40%, transparent 75%); }
+.pace-screen::before { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, rgb(255 122 31 / .25), rgb(94 10 18 / .3) 40%, transparent 75%); }
 .pace-value { position: relative; font-family: var(--disp); font-weight: 900; font-stretch: 62%; font-size: 92px; line-height: .9; font-variant-numeric: tabular-nums; }
 .pace-meta { position: relative; font-size: 11px; color: var(--bone-2); letter-spacing: .1em; margin-top: 12px; text-transform: uppercase; }
 
 /* ===== STATS ===== */
 .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0; }
-.stat-card { position: relative; background: var(--flesh-1); border: 1px solid var(--vein); padding: 14px 12px 12px; }
+.stat-card { position: relative; background: var(--flesh-1); border: 2px solid var(--iron); padding: 14px 12px 12px; }
 .stat-value { font-family: var(--disp); font-weight: 850; font-stretch: 66%; font-size: 40px; line-height: .9; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .stat-value.hot { background: linear-gradient(90deg, var(--t3), var(--t4)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .stat-label { font-size: 9px; color: var(--bone-2); text-transform: uppercase; letter-spacing: .1em; margin-top: 6px; }
@@ -407,9 +455,9 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 /* Histórico */
 .hist-lines { margin-top: 8px; font-size: 10px; line-height: 1.8; color: var(--bone-2); }
 .hist-lines span { color: var(--bone-3); }
-.seg { display: flex; gap: 0; margin-bottom: 16px; border: 1px solid var(--bone-2); }
+.seg { display: flex; gap: 0; margin-bottom: 16px; border: 1px solid var(--iron); }
 .seg button { flex: 1; min-height: 44px; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--bone-2); }
-.seg button + button { border-left: 1px solid var(--bone-2); }
+.seg button + button { border-left: 1px solid var(--iron); }
 .seg button[aria-pressed="true"] { background: var(--bone); color: var(--flesh-0); }
 
 /* ===== LÂMINA MODAL (A) ===== */
@@ -495,5 +543,6 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   .membrane { opacity: .42; transform: none; }
   .wm { font-stretch: 118%; }
   .veins.on .vimg { animation: none; --veil: 42%; }
+  body::after { display: none; }
   *, *::before, *::after { transition-duration: .001ms !important; }
 }

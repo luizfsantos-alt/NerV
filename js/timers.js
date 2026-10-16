@@ -46,6 +46,9 @@ export class Stopwatch {
 // ritmo sobe. No zero, um único som (lub-dub), e a barra vira hemorragia: as
 // veias crescem das bordas e pulsam cada vez mais rápido. Depois disso a
 // cobrança é só vibração, para não brigar com a música de quem treina.
+//
+// O rótulo é a condição do ECG de Resident Evil: Estável enquanto há folga,
+// Atenção nos últimos segundos, Perigo quando estoura.
 let restEndsAt = null;
 let restTotal = 0;
 let restHandle = null;
@@ -56,6 +59,7 @@ let rhythmBefore = null;
 
 const NAG_EVERY = 15;  // s entre cutucadas (vibração)
 const NAG_UNTIL = 180; // s de atraso: passando disso, só o visual insiste
+const CAUTION_AT = 10; // s restantes em que a condição passa a Atenção
 const GIVE_UP = 300;   // s de atraso: descanso abandonado, a barra sai da tela
 
 const $ = id => document.getElementById(id);
@@ -72,6 +76,9 @@ function paintRest() {
     setText($('restCount'), mmss(left));
     $('restLeft').style.transform = 'scaleX(' + Math.max(0, Math.min(1, left / restTotal)).toFixed(3) + ')';
     if (el.classList.contains('over')) clearOverState();
+    const atencao = left <= CAUTION_AT;
+    el.classList.toggle('caution', atencao);
+    setText($('restTag'), atencao ? 'Atenção' : 'Estável');
     if (left <= 5) setRhythm(88 + (6 - left) * 6, 'Descanso acabando');
     else setRhythm(88, 'Descanso');
     return;
@@ -84,8 +91,9 @@ function paintRest() {
   if (!restDoneFired) {
     restDoneFired = true;
     restNextNag = NAG_EVERY;
+    el.classList.remove('caution');
     el.classList.add('over');
-    setText($('restTag'), 'Estourado');
+    setText($('restTag'), 'Perigo');
     setText($('restSkip'), 'Voltar');
     $('restSkip').title = 'Encerrar o descanso e voltar para a série';
     $('restLeft').style.transform = 'scaleX(1)';
@@ -113,7 +121,7 @@ function clearOverState() {
   if (el) el.classList.remove('over');
   $('veins')?.classList.remove('on');
   setUrgent(false);
-  setText($('restTag'), 'Descanso');
+  setText($('restTag'), 'Estável');
   setText($('restSkip'), 'Pular');
   if ($('restSkip')) $('restSkip').title = 'Pular descanso';
 }
@@ -147,7 +155,7 @@ export function stopRest() {
   restEndsAt = null; restDoneFired = false; restNextNag = 0;
   document.removeEventListener('visibilitychange', onVisible);
   const el = $('restBar');
-  if (el) { el.classList.remove('active'); clearOverState(); }
+  if (el) { el.classList.remove('active', 'caution'); clearOverState(); }
   document.body.classList.remove('resting');
   setEcg(false);
   if (estava && rhythmBefore) setRhythm(rhythmBefore.bpm, rhythmBefore.label);

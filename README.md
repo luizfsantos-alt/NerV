@@ -72,6 +72,8 @@ duas, e uma faísca desce até a próxima série, que fica acesa pulsando.
 - **Descanso** só começa quando você pede, no botão do card: fechar a série
   não dispara nada. Ele aparece numa barra fixa no rodapé, visível de qualquer
   ponto da tela, com um eletro correndo no ritmo do coração, `+30s` e `PULAR`.
+  O eletro mostra a condição, como em Resident Evil: **ESTÁVEL** (verde) com
+  folga, **ATENÇÃO** (âmbar) nos últimos 10 s e **PERIGO** (vermelho) ao estourar.
   Estourou o tempo, um único som (lub-dub, o único som do app), a barra conta o atraso para cima e
   as veias crescem das bordas da tela, pulsando cada vez mais rápido. Depois
   disso a cobrança é **só vibração**, para não brigar com a música de quem
@@ -80,7 +82,7 @@ duas, e uma faísca desce até a próxima série, que fica acesa pulsando.
   digitar duas vezes o que já está escrito.
 - **A tela não apaga** durante o treino (Wake Lock, onde o navegador suporta).
 - **Exercício concluído encista**: o card contrai numa fenda, a fenda brilha em
-  violeta e sela numa cápsula com o nome, as séries fechadas e o volume. Toque na
+  vermelho e sela numa cápsula com o nome, as séries fechadas e o volume. Toque na
   cápsula para reabrir; o botão `ENCISTAR` guarda de novo.
 - **Sair com séries não salvas pede confirmação**, inclusive pelo botão físico
   de voltar do Android.

@@ -85,8 +85,8 @@ function paint(el) {
   html += '<div class="sess">' +
     '<button class="clock' + (watch.running ? '' : ' paused') + '" type="button" id="clock" aria-label="Tempo de sessão. Toque para pausar ou continuar.">' +
       '<svg viewBox="0 0 220 92" fill="none" aria-hidden="true">' +
-        '<path d="M22 46c1-17 38-31 82-31s88 13 88 31-42 31-86 31-85-14-84-31z" stroke="#5E22B0" stroke-opacity=".5"/>' +
-        '<path d="M14 50c4-22 48-38 96-37s92 16 90 36" stroke="#5E22B0" stroke-opacity=".3" stroke-dasharray="2 5"/>' +
+        '<path d="M22 46c1-17 38-31 82-31s88 13 88 31-42 31-86 31-85-14-84-31z" stroke="#B0141E" stroke-opacity=".55"/>' +
+        '<path d="M14 50c4-22 48-38 96-37s92 16 90 36" stroke="#B0141E" stroke-opacity=".35" stroke-dasharray="2 5"/>' +
       '</svg>' +
       '<span id="workoutTimer">' + fmtTime(watch.seconds) + '</span>' +
     '</button>' +
@@ -208,7 +208,7 @@ async function toggleSet(i, j) {
 
   if (!set.done) { markNext(i); return; }
 
-  vibrate(15);
+  vibrate(25);
   if (motionOK()) {
     divide(cell);
     cell.animate([{ transform: 'scale(1)' }, { transform: 'scale(.78)', offset: .28 }, { transform: 'scale(1.08)', offset: .7 }, { transform: 'scale(1)' }],
@@ -218,8 +218,15 @@ async function toggleSet(i, j) {
     cell.appendChild(rp);
     rp.animate([{ transform: 'scale(1)', opacity: .8 }, { transform: 'scale(2.3)', opacity: 0 }],
       { duration: 460, delay: 90, easing: 'cubic-bezier(.2,0,0,1)' }).onfinish = () => rp.remove();
+    // Impacto: o card treme como quem levou um golpe e acende em vermelho por um instante.
     const lam = card.querySelector('.card');
-    lam.animate([{ transform: 'scaleY(1)' }, { transform: 'scaleY(.988)', offset: .35 }, { transform: 'scaleY(1)' }], { duration: 240, easing: 'ease-out' });
+    lam.animate([
+      { transform: 'none' }, { transform: 'translateX(-4px) scaleY(.988)', offset: .2 },
+      { transform: 'translateX(3px)', offset: .45 }, { transform: 'translateX(-2px)', offset: .7 }, { transform: 'none' },
+    ], { duration: 240, easing: 'ease-out' });
+    lam.animate([
+      { offset: .15, borderColor: '#F03A3A', boxShadow: 'inset 0 0 0 4px #0E0909, inset 0 0 60px rgb(240 58 58 / .45), 0 0 24px rgb(240 58 58 / .35)' },
+    ], { duration: 320, easing: 'ease-out' });
   }
 
   const next = ex.sets.findIndex(s => !s.done);
@@ -274,7 +281,7 @@ function pintarCap(i) {
 // ===== 06 Encistamento =====
 // Fechou todas as séries, o card não serve mais para nada e só atrapalha a
 // rolagem até o próximo exercício. Ele contrai até virar uma fenda, a fenda
-// brilha em violeta e sela numa cápsula. Tocar na cápsula reabre o card.
+// brilha em vermelho e sela numa cápsula. Tocar na cápsula reabre o card.
 
 async function encistar(i) {
   const card = cardDo(i), ex = sessao && sessao.exercicios[i];
