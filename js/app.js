@@ -16,7 +16,7 @@ import { setBeforeLeave } from './router.js';
 
 // Anda junto com o VERSION do sw.js. A tela de Ajustes mostra os dois lado a
 // lado justamente para denunciar quando o service worker fica para trás.
-export const VERSION = '3.5.0';
+export const VERSION = '3.6.0';
 window.__NERV_VERSION__ = VERSION;
 
 // O resgate de emergência do index.html recarrega com ?nerv-reset=... para
@@ -57,11 +57,31 @@ onRender((name, screen) => {
   scan(screen);
 });
 
-/** Abertura (C): uma vez por carregamento, a membrana acende e a marca estica. */
+/** Abertura (C): uma vez por carregamento, a membrana acende e a marca se
+ *  divide: uma esfera só alonga, estrangula no meio e vira duas tangentes; o
+ *  nome entra partido, NE de um lado e RV do outro. Fica no topo, sem segurar
+ *  o app: na academia ninguém espera abertura. */
 function abertura() {
   if (!ambient()) return;
   document.querySelector('.membrane').animate([{ opacity: 0 }, { opacity: .6 }], { duration: 600, easing: 'cubic-bezier(.7,0,.2,1)' });
-  document.getElementById('logo').animate([{ fontStretch: '50%', opacity: 0 }, { fontStretch: '125%', opacity: 1 }], { duration: 600, easing: 'cubic-bezier(.7,0,.2,1)' });
+  const logo = document.getElementById('logo'), q = s => logo.querySelector(s);
+  const E = 'cubic-bezier(.2,0,0,1)', S = 'cubic-bezier(.5,1.6,.4,1)', T = { duration: 900, delay: 150, fill: 'backwards' };
+  q('.cel').animate([
+    { transform: 'scale(.55)', opacity: 0, easing: E }, { transform: 'scale(1)', opacity: 1, offset: .22, easing: E },
+    { transform: 'scale(1.06, .9)', offset: .5, easing: E }, { transform: 'none', offset: .8 }, { transform: 'none' },
+  ], T);
+  for (const [sel, dx] of [['.c1', 100], ['.c2', -100]]) {
+    q(sel).animate([
+      { transform: `translateX(${dx}px)` }, { transform: `translateX(${dx}px)`, offset: .25, easing: S },
+      { transform: 'none', offset: .78 }, { transform: 'none' },
+    ], T);
+  }
+  for (const [sel, dx] of [['.n1', 60], ['.n2', -60]]) {
+    q(sel).animate([
+      { opacity: 0, transform: `translateX(${dx}px) scaleX(.4)` }, { opacity: 0, transform: `translateX(${dx}px) scaleX(.4)`, offset: .55, easing: E },
+      { opacity: 1, transform: `translateX(${-dx / 15}px) scaleX(1.08)`, offset: .85, easing: E }, { opacity: 1, transform: 'none' },
+    ], T);
+  }
   firstBeat();
 }
 

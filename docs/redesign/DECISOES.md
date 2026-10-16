@@ -28,7 +28,12 @@ Referência visual e de movimento: [`maquete.html`](maquete.html).
   - **Flicker:** um véu escuro que oscila de leve e afunda uma vez a cada 5,3 s. A maior queda escurece 16%, longe do limite de risco para fotossensíveis (3 piscadas fortes por segundo). O "Sedar" e o "menos movimento" do sistema desligam.
   - **Bleed de fósforo:** texto e contornos vazam a própria luz, com um fantasma vermelho e outro ciano. A mesa comparou dois níveis e escolheu o combinado: bordas, carimbos e títulos no nível forte, texto corrido num meio-termo para continuar legível. O logo fica de fora.
   - **Fora:** o desfoque nas bordas da tela. Ele teria de ser refeito a cada quadro em cima do fundo que pulsa, o que pesa na bateria e trava a rolagem. A vinheta continua como na 3.4.0.
-- **Logo:** em aberto. Testamos Anybody condensada, uma serifada estilo RE4 e um stencil militar; a mesa vai desenhar um logo próprio. O ícone do app continua violeta até lá.
+- **Logo (3.6.0):** a mesa trouxe o desenho, duas esferas vermelhas com NERV em preto, e ele virou vetor.
+  - **Esferas tangentes:** só se tocam num ponto, a célula no instante da divisão (o mesmo símbolo da série fechada e da Mutação). Como ali o vermelho tem altura zero, o nome se parte junto: NE numa esfera, RV na outra.
+  - **Letras:** espaço igual entre todas, Anybody 900 a 90% de largura, o maior tamanho em que cada letra perde no máximo 6% nas bordas (52% do diâmetro). As esferas recortam o que passa. A mesa comparou quatro proporções e escolheu esta.
+  - **Abertura:** no topo, sem segurar o app. Uma esfera alonga e vira duas, e o nome entra partido (0,9 s).
+  - **Ícone:** só as esferas, na diagonal, para não ler como outros símbolos de dois círculos. Gerado por [`icone.py`](icone.py), sufixo `-v7`.
+  - Antes, testamos Anybody condensada, uma serifada estilo RE4 e um stencil militar.
 
 ## Próximos passos
 

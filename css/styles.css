@@ -123,13 +123,13 @@ body.fx-off .flicker { display: none; }
 /* ===== TOPO ===== */
 header { position: relative; z-index: 20; padding: calc(12px + var(--safe-top)) 16px 0; background: linear-gradient(#050303 72%, transparent); }
 .top-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 44px; }
-.wm {
-  font-family: var(--disp); font-weight: 900; font-size: 25px; letter-spacing: .06em; line-height: 1;
-  font-stretch: calc(118% + var(--beat) * 14%); cursor: pointer; padding: 8px 0;
-}
-.wm em { font-style: normal; color: var(--corante); }
-.wm { text-shadow: none; }  /* o logo fica de fora do bleed até a mesa desenhar o novo */
-body.fx-off .wm { font-stretch: 118%; }
+.wm { cursor: pointer; padding: 4px 0; line-height: 0; text-shadow: none; }
+/* Duas esferas tangentes e o nome partido (NE | RV), com espaço igual entre
+   as letras. As letras passam um pouco da borda e as esferas as recortam. */
+.wm svg { display: block; height: 36px; width: auto; overflow: visible; }
+.wm circle { fill: #C8101A; }
+.wm text { fill: var(--flesh-0); font-family: var(--disp); font-weight: 900; font-stretch: 90%; font-size: 153.24px; }
+.wm circle, .wm g { transform-box: fill-box; transform-origin: center; }
 .top-r { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .readout { font-size: 8.5px; letter-spacing: .08em; color: var(--bone-2); text-align: right; line-height: 1.55; text-transform: uppercase; min-width: 0; }
 .readout span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -571,7 +571,6 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 /* Respeita quem pediu menos movimento no sistema: o ambiente para, o feedback fica. */
 @media (prefers-reduced-motion: reduce) {
   .membrane { opacity: .42; transform: none; }
-  .wm { font-stretch: 118%; }
   .veins.on .vimg { animation: none; --veil: 42%; }
   body::after, .flicker { display: none; }
   *, *::before, *::after { transition-duration: .001ms !important; }

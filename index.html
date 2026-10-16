@@ -12,8 +12,8 @@
 <title>NerV — Neural Engine Routine</title>
 
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192-v6.png">
-<link rel="apple-touch-icon" href="assets/apple-touch-icon-v6.png">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192-v7.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon-v7.png">
 <link rel="preload" href="assets/fonts/anybody-var-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/martian-mono-var-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="css/styles.css">
@@ -27,7 +27,8 @@
 <div id="app">
   <header>
     <div class="top-row">
-      <div class="wm" id="logo" role="link" tabindex="0" aria-label="NerV, ir para Fichas">NER<em>V</em></div>
+      <!-- Logo: a célula no instante da divisão, duas esferas tangentes, e o nome partido junto. -->
+      <div class="wm" id="logo" role="link" tabindex="0" aria-label="NerV, ir para Fichas"><svg viewBox="0 0 400 200" aria-hidden="true"><defs><clipPath id="logo-cel"><circle cx="100" cy="100" r="100"/><circle cx="300" cy="100" r="100"/></clipPath></defs><g class="cel"><circle class="c1" cx="100" cy="100" r="100"/><circle class="c2" cx="300" cy="100" r="100"/></g><g clip-path="url(#logo-cel)"><g class="n1"><text x="-5.26" y="151.79">N</text><text x="117.07" y="151.79">E</text></g><g class="n2"><text x="201.10" y="151.79">R</text><text x="307.19" y="151.79">V</text></g></g></svg></div>
       <div class="top-r">
         <div class="readout" aria-live="off"><span><span id="roWhere" style="display:inline">Lâminas</span> · <b class="bpm-out">52 BPM</b></span><span id="roState">Organismo em repouso</span></div>
         <button class="ibtn" id="fxToggle" type="button" aria-pressed="false" title="Sedar: desliga os efeitos de ambiente">Sedar</button>
