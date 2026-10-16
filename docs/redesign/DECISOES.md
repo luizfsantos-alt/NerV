@@ -14,7 +14,17 @@ Referência visual e de movimento: [`maquete.html`](maquete.html).
 - **Som:** só dois momentos, lub-dub no fim do descanso e acorde curto no recorde. Com o descanso estourado, a cobrança é só vibração (hoje o app apita a cada 15 s).
 - **Crítica da mesa:** a primeira maquete ficou geométrica demais (ósteon de círculos perfeitos, veias em zigue-zague de espessura constante, membrana em grade hexagonal, fibras em listras regulares).
 - **Caminho escolhido:** híbrido. O Gemini gera as texturas-base (osso, tecido, fibra) e o movimento continua procedural por cima. As imagens entram como WebP comprimido e no precache do service worker.
-- **CRT (3.3.0):** primeira peça da direção mais agressiva, estilo Resident Evil 3 e 4. Linhas de varredura fixas e uma faixa de brilho que desce a tela a cada 7 s. O "Sedar" desliga as duas; com menos movimento pedido no sistema, a faixa para e as linhas ficam. Os outros tweaks (paleta sangue, condição no descanso, botões de chapa, cards de arquivo, ambiente, tipografia, impacto, Mutação) foram mostrados em prévia e aguardam o ok da mesa. O logo fica como está: a mesa vai desenhar um novo.
+- **CRT (3.3.0):** primeira peça da direção mais agressiva, estilo Resident Evil 3 e 4. Linhas de varredura fixas e uma faixa de brilho que desce a tela a cada 7 s. O "Sedar" desliga as duas; com menos movimento pedido no sistema, a faixa para e as linhas ficam. O logo fica como está: a mesa vai desenhar um novo.
+- **Direção Resident Evil (3.4.0):** a mesa achou a UI leve demais depois do redesign e aprovou, a partir de prévias antes/depois, oito ajustes:
+  1. **Paleta sangue:** o violeta sai. Destaque `#F03A3A` (4,9:1 como texto sobre os cards), botões em chapa vinho `#7A0D14` (texto claro a 8,7:1), bordas em ferrugem `--iron`. O "V" do logo fica vermelho pela própria paleta. As imagens foram recoloridas com [`texturas/sangue.py`](texturas/sangue.py).
+  2. **Condição no descanso:** o eletro e o rótulo mudam com o tempo: Estável (verde), Atenção (âmbar, últimos 10 s), Perigo (o estouro, com as veias).
+  3. **Botões de chapa:** cantos chanfrados, borda dupla e bisel, clarão ao tocar. Sai a textura `botao.webp`.
+  4. **Cards de arquivo:** fundo opaco, moldura dupla, rebites nos cantos, fibra cinza e apagada, rótulo como carimbo torto.
+  5. **Ambiente opressivo:** vinheta pesada nas bordas, membrana mais escura e vermelha, mais grão, o CRT da 3.3.0.
+  6. **Tipografia mais dura:** rótulos cerrados e em negrito, títulos com sombra vermelha. A fonte não mudou.
+  7. **Impacto:** fechar a série faz o card tremer e acender em vermelho, com vibração mais forte.
+  8. **Mutação:** palavra com aberração cromática, calor sem violeta.
+- **Logo:** em aberto. Testamos Anybody condensada, uma serifada estilo RE4 e um stencil militar; a mesa vai desenhar um logo próprio. O ícone do app continua violeta até lá.
 
 ## Próximos passos
 

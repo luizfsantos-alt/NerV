@@ -25,6 +25,8 @@ O ósteon saiu. A série passa a ser uma célula que se divide ao ser fechada.
 
 Desde a 3.1, todas as imagens de célula passam por um filtro violeta (`corante()` no `processar.py`): o brilho de cada ponto vira um tom da rampa violeta e a transparência é mantida. O ícone é a célula em violeta (`-v6` desde a 3.1.1), e o botão principal usa a textura da membrana em violeta profundo (`botao.webp`). Na 3.1.1 a rampa ficou mais escura e saturada, inspirada em cristal violeta e hematoxilina. O osso esponjoso ficou só na maquete.
 
+Na 3.4.0 (direção Resident Evil) as imagens de `assets/tex/` foram levadas do violeta para o vermelho-sangue com [`texturas/sangue.py`](texturas/sangue.py), que aplica as mesmas matrizes de cor dos filtros CSS aprovados na prévia. A membrana ficou mais escura, a fibra dos cards ficou cinza e o `botao.webp` saiu: o botão principal agora é uma chapa vinho desenhada em CSS. O ícone do app continua violeta até o logo novo.
+
 Guardadas sem uso, para variações futuras: `mitose-2.jpg`, `cromossomos-2.jpg`, `nucleo-1.jpg`.
 
 | # | Recurso | Onde entra | Formato | Prioridade |

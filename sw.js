@@ -21,7 +21,7 @@
 // rede com elas.
 
 // O prefixo 'nerv2-' fica: é com ele que a limpeza reconhece os caches antigos.
-const VERSION = 'nerv2-v3.3.0';
+const VERSION = 'nerv2-v3.4.0';
 const CACHE = VERSION;
 
 // Rede lenta não pode segurar a abertura do app. Passou disto, o cache assume.
@@ -63,7 +63,6 @@ const PRECACHE = [
   './assets/tex/membrana.webp',
   './assets/tex/fibra.webp',
   './assets/tex/veias.webp',
-  './assets/tex/botao.webp',
   './assets/tex/grao.webp',
   './assets/tex/cel-repouso.webp',
   './assets/tex/cel-mitose.webp',

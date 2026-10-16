@@ -239,8 +239,8 @@ export function mutation(prs, cb) {
         { backgroundPosition: '0 -100%', opacity: 1 }, { backgroundPosition: '0 0%', opacity: 1, offset: .45 },
         { backgroundPosition: '0 0%', opacity: 1, offset: .55 }, { backgroundPosition: '0 70%', opacity: .7 },
       ], { duration: 1400, easing: 'cubic-bezier(.7,0,.2,1)', fill: 'forwards' });
-      m.animate([{ backgroundColor: '#0C0709' }, { backgroundColor: '#FFF2D2', offset: .5 }, { backgroundColor: '#0C0709' }], { duration: 1400, easing: 'ease-in-out' });
-      word.animate([{ color: '#1A0E0A' }, { color: '#1A0E0A', offset: .4 }, { color: '#EEE3CA' }], { duration: 1300 });
+      m.animate([{ backgroundColor: '#080506' }, { backgroundColor: '#FFE2C2', offset: .5 }, { backgroundColor: '#080506' }], { duration: 1400, easing: 'ease-in-out' });
+      word.animate([{ color: '#1A0E0A' }, { color: '#1A0E0A', offset: .4 }, { color: '#E6DCC6' }], { duration: 1300 });
     }
     word.animate([
       { fontStretch: '50%', letterSpacing: '.3em', opacity: 0 },
